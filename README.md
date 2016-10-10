@@ -1,2 +1,5 @@
-# dazzar
-Tools for the French dota community.
+# Dazzar
+
+### Goal
+
+Simple ladder for French community.

@@ -1,0 +1,4 @@
+.idea
+__pycache__
+common/settings.cfg
+docker/dazzar_postgres/conf.env

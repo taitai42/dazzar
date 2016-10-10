@@ -1,0 +1,42 @@
+version: "2"
+
+services:
+  dazzar_postgres:
+    image: dazzar_postgres
+    container_name: "dazzar_postgres"
+    restart: always
+    build:
+      context: dazzar_postgres
+    volumes:
+      - "/docker/dazzar_postgres/data:/var/lib/postgresql/data"
+    environment:
+      - POSTGRES_USER=dazzar
+    env_file:
+      - './dazzar_postgres/conf.env'
+    network_mode: "bridge"
+
+  dazzar_web:
+    image: dazzar_web
+    container_name: "dazzar_web"
+    build:
+      context: dazzar_web
+    volumes:
+      - "/docker/dazzar_web:/dazzar"
+    ports:
+      - "9004:8000"
+    depends_on:
+      - dazzar_postgres
+    entrypoint: python3 /dazzar/web/web_application.py
+    network_mode: "bridge"
+
+  dazzar_bot:
+    image: dazzar_bot
+    container_name: "dazzar_bot"
+    build:
+      context: dazzar_bot
+    volumes:
+      - "/docker/dazzar_web:/dazzar"
+    depends_on:
+      - dazzar_postgres
+    entrypoint: python3 /dazzar/bot/bot_application.py
+    network_mode: "bridge"
