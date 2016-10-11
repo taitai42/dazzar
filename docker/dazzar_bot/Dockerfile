@@ -9,6 +9,6 @@ RUN apt-get -y install \
     libpq-dev
 
 RUN pip3 install \
-    tornado \
+    tornado
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar
