@@ -14,6 +14,8 @@ RUN pip3 install \
     Flask \
     Flask-Migrate \
     Flask-SQLAlchemy \
-    SQLAlchemy
+    SQLAlchemy \
+    Flask-OpenID \
+    Flask-Login
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar

@@ -1,7 +1,12 @@
-from flask import Flask, abort, jsonify, request, render_template, url_for
-from flask_migrate import Migrate
+import logging
+import re
 
-from common.models import db
+from flask import Flask, abort, jsonify, request, render_template, url_for, session, json, g, redirect
+from flask_migrate import Migrate
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
+from flask_openid import OpenID
+
+from common.models import db, User
 from common.configuration import load_config
 
 app = Flask(__name__)
@@ -9,10 +14,59 @@ load_config(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# Login Setup
 
-@app.route('/', methods=['GET', 'POST'])
+
+oid = OpenID(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    logging.log(logging.WARNING, 'azda ' + user_id)
+    user = User.query.filter_by(id=user_id).first()
+    return user
+
+
+# Routes
+
+
+@app.route('/', methods=['GET'])
 def index():
     return 'Hello World'
+
+
+@app.route('/hidden', methods=['GET'])
+@login_required
+def hidden():
+    return 'Hello World2'
+
+
+@app.route('/login')
+@oid.loginhandler
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('hidden'))
+    return oid.try_login('http://steamcommunity.com/openid')
+
+
+_steam_id_re = re.compile('steamcommunity.com/openid/id/(.*?)$')
+
+
+@oid.after_login
+def create_or_login(resp):
+    match = _steam_id_re.search(resp.identity_url)
+    user = User.get_or_create(match.group(1))
+    login_user(user)
+    return redirect(url_for('hidden'))
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
 
 
 if __name__ == "__main__":

@@ -28,6 +28,8 @@ services:
       - dazzar_postgres
     entrypoint: python3 /dazzar/web/web_application.py
     network_mode: "bridge"
+    external_links:
+      - dazzar_postgres
 
   dazzar_bot:
     image: dazzar_bot
