@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h1>Login</h1>
+    <p>Pour accéder à toutes les fonctionnalités, vous devez vous connecter via Steam. <br />
+    <a href="{{ url_for('login_steam') }}"><img src="{{ url_for('static', filename='img/steam_login.png') }}"></a>
+    </p>
+{% endblock %}

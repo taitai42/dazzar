@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>Dazzar</title>
+</head>
+<body>
+    <ul>
+        <li><a href="{{ url_for('index') }}">Index</a></li>
+        <li><a href="{{ url_for('ladder_scoreboard') }}">VIP Ladder Scoreboard</a></li>
+        <li><a href="{{ url_for('ladder_play') }}">VIP Ladder Jouer</a></li>
+    </ul>
+
+    <section>
+        {% if current_user.is_authenticated %}
+            Auth as {{ current_user.id }}<br />
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
+    </section>
+
+    <section>
+        {% block body %}{% endblock %}
+    </section>
+
+</body>
+</html>
