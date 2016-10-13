@@ -55,7 +55,7 @@ class User(db.Model):
 class QueueVIP(db.Model):
     __tablename__ = 'queue_vip'
 
-    id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    id = db.Column(db.String(40), db.ForeignKey('users.id'), primary_key=True)
     added = db.Column(db.DateTime, index=True, nullable=False)
 
     def __init__(self, id):
