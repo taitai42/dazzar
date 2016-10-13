@@ -79,6 +79,24 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.before_request
+def nickname_checker():
+    if request.endpoint == 'nickname' or request.endpoint == 'logout':
+        return None
+
+    if current_user.is_authenticated and (current_user.nickname is None):
+        return redirect(url_for('nickname'))
+    return None
+
+
+@app.route('/nickname')
+def nickname():
+    if (not current_user.is_authenticated) or (current_user.nickname is not None):
+        return redirect(url_for('index'))
+    else:
+        return render_template('nickname.html')
+
+
 if __name__ == "__main__":
     from tornado.wsgi import WSGIContainer
     from tornado.httpserver import HTTPServer
