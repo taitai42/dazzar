@@ -20,7 +20,9 @@ db-start: deploy
 # Migrate database from models
 db-migrate: build deploy
 	docker run --rm --name dazzar_migrate --link dazzar_postgres -v /docker/dazzar_web:/dazzar -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate
-	rsync -av /docker/dazzar_web/migrations/versions $$(pwd)/migrations/versions
+	rsync -av /docker/dazzar_web/migrations/versions $$(pwd)/migrations
+	cd migrations/versions && chown -R `stat . -c %u:%g` *
+	rm -rf migrations/versions/__pycache__
 
 # Upgrade database on running postgres
 db-upgrade: build deploy

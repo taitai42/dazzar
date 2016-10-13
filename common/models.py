@@ -1,4 +1,7 @@
 from enum import IntEnum
+from datetime import datetime
+import string
+import random
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -47,3 +50,37 @@ class User(db.Model):
             db.session.add(rv)
             db.session.commit()
         return rv
+
+
+class QueueVIP(db.Model):
+    __tablename__ = 'queue_vip'
+
+    id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    added = db.Column(db.DateTime, index=True, nullable=False)
+
+    def __init__(self, id):
+        self.id = id
+        self.added = datetime.now()
+
+
+class MatchStatus(IntEnum):
+    Creation = 0
+    InProgress = 1
+    Cancelled = 2
+    Over = 3
+
+
+class MatchVIP(db.Model):
+    __tablename__= 'match_vip'
+
+    id = db.Column(db.Integer, primary_key=True)
+    created = db.Column(db.DateTime, index=True, nullable=False)
+    status = db.Column(db.Integer, nullable=False)
+    password = db.Column(db.String(20), nullable=False)
+
+    def __init__(self):
+        self.created = datetime.now()
+        self.status = MatchStatus.Creation
+        self.password = 'dz_'
+        for i in range[0:3]:
+            self.password += random.choice(string.ascii_lowercase + string.digits)
