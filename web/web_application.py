@@ -18,7 +18,7 @@ migrate = Migrate(app, db)
 # Login Setup
 
 
-oid = OpenID(app)
+oid = OpenID(app, store_factory=lambda: None)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
