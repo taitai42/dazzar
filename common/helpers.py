@@ -1,3 +1,7 @@
+import re
+
+valid_nick_re = re.compile('^(?=.{3,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$')
+
 
 def validate_nickname(nickname):
     """ Validate the nickname entered.
@@ -8,4 +12,13 @@ def validate_nickname(nickname):
         None if validated, a string to describe the error otherwise
     """
 
-    return None
+    if len(nickname) <= 2:
+        return "Pseudo trop court."
+
+    if len(nickname) >= 20:
+        return "Pseudo trop long."
+
+    if valid_nick_re.match(nickname):
+        return None
+    else:
+        return "Pseudo non valide."
