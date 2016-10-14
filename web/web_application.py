@@ -99,11 +99,17 @@ def nickname():
         return render_template('nickname.html')
     elif request.method == 'POST':
         posted_nickname = request.form.get('nickname')
-        if validate_nickname(posted_nickname) is None:
-            session = db.session()
-            user = session.query(User).filter_by(id=current_user.id).first()
-            user.nickname = posted_nickname
-            db.session().commit()
+
+        error = validate_nickname(posted_nickname)
+        if error is not None:
+            return render_template('nickname.html', error=error)
+
+        session = db.session()
+        if session.query(User).filter_by(nickname=posted_nickname).first() is not None:
+            return render_template('nickname.html', error='Le pseudo est déjà utilisé.')
+        user = session.query(User).filter_by(id=current_user.id).first()
+        user.nickname = posted_nickname
+        db.session().commit()
         return redirect(url_for('index'))
 
     abort(404)
