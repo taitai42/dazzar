@@ -1,13 +1,14 @@
 import logging
 import re
 
-from flask import Flask, abort, jsonify, request, render_template, url_for, session, json, g, redirect
+from flask import Flask, abort, jsonify, request, render_template, url_for, session, json, g, redirect, abort
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from flask_openid import OpenID
 
 from common.models import db, User
 from common.configuration import load_config
+from common.helpers import validate_nickname
 
 app = Flask(__name__)
 load_config(app)
@@ -89,12 +90,23 @@ def nickname_checker():
     return None
 
 
-@app.route('/nickname')
+@app.route('/nickname', methods=['GET', 'POST'])
 def nickname():
     if (not current_user.is_authenticated) or (current_user.nickname is not None):
         return redirect(url_for('index'))
-    else:
+
+    if request.method == 'GET':
         return render_template('nickname.html')
+    elif request.method == 'POST':
+        posted_nickname = request.form.get('nickname')
+        if validate_nickname(posted_nickname) is None:
+            session = db.session()
+            user = session.query(User).filter_by(id=current_user.id).first()
+            user.nickname = posted_nickname
+            db.session().commit()
+        return redirect(url_for('index'))
+
+    abort(404)
 
 
 if __name__ == "__main__":

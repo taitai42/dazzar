@@ -12,7 +12,7 @@
 
     <section>
         {% if current_user.is_authenticated %}
-            Auth as {{ current_user.id }}<br />
+            Auth as {{ current_user.id }} user with nickname {{ current_user.nickname }} <br />
             <a href="{{ url_for('logout') }}">Logout</a>
         {% else %}
             <a href="{{ url_for('login') }}">Login</a>

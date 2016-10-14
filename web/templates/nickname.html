@@ -2,6 +2,10 @@
 {% block body %}
     <h1>Pseudo</h1>
     <p>Pour continuer, vous devez choisir un pseudo qui sera unique sur la plateforme.<br />
-    Choix à venir
+        <form>
+            Pseudo:
+            <input type="text" name="nickname">
+            <input type="submit" formmethod="post" formaction="{{ url_for('nickname') }}" value="Valider">
+        </form>
     </p>
 {% endblock %}
