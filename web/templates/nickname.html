@@ -1,11 +1,14 @@
 {% extends "layout.html" %}
 {% block body %}
-    <h1>Pseudo</h1>
-    <p>Pour continuer, vous devez choisir un pseudo qui sera unique sur la plateforme.<br />
+<h1 class="page-header">Pseudo</h1>
+
+<div class="container">
+    <p>Vous n'avez pas encore de pseudo sur Dazzar. Vous devez en choisir un (unique) pour être reconnu sur la plateforme.<br />
         <form>
             Pseudo:
             <input type="text" name="nickname">
             <input type="submit" formmethod="post" formaction="{{ url_for('nickname') }}" value="Valider">
         </form>
     </p>
+</div>
 {% endblock %}
