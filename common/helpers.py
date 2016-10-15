@@ -1,5 +1,6 @@
 import re
 
+# Regex to validate a user nickname
 valid_nick_re = re.compile('^(?=.{3,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$')
 
 

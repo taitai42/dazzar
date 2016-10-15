@@ -2,4 +2,4 @@
 
 ### Goal
 
-Simple ladder for French community.
+Simple ladder for the French community.

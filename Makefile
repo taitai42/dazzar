@@ -12,10 +12,13 @@ deploy:
 ############
 
 # Start db
-db-start: deploy
+db-start: deploy db-stop
+	docker-compose -f docker/docker-compose.yml up -d --build dazzar_postgres
+
+# Stop db
+db-stop:
 	-docker stop dazzar_postgres
 	-docker rm dazzar_postgres
-	docker-compose -f docker/docker-compose.yml up -d --build dazzar_postgres
 
 # Migrate database from models
 db-migrate: build deploy
@@ -46,8 +49,8 @@ all-stop:
 	-docker rm dazzar_bot
 
 # Start all
-all-start: db-start
-	docker-compose -f docker/docker-compose.yml up -d dazzar_web
+all-start:
+	docker-compose -f docker/docker-compose.yml up -d
 
 # Start web
 web-start: build deploy
@@ -55,7 +58,7 @@ web-start: build deploy
 
 # Start bot
 bot-start: build deploy
-	docker-compose -f docker/docker-compose.yml up -d dazzar_bot
+	docker-compose -f docker/docker-compose.yml up dazzar_bot
 
 # Build
 build:

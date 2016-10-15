@@ -9,6 +9,7 @@ db = SQLAlchemy()
 
 
 class UserBasicRights(IntEnum):
+    """A user basic rights is a number where each bit is special access."""
     Default = 0
     Banned = 1
     AdminRights = 2
@@ -17,6 +18,17 @@ class UserBasicRights(IntEnum):
 
 
 class User(db.Model):
+    """A user representation in the database.
+
+    Attributes:
+        id - unique id, steam ID
+        nickname - unique nickname of the user, None at the first logging
+        basic_rights - bitwise agglomerate of UserBasicRights
+    Methods:
+        has_right - test if user has a specific right
+        give_right - give a specific right to the user (need commit afterwards)
+        get_or_create - return user of given steam id, create it if necessary
+    """
     __tablename__ = 'users'
 
     id = db.Column(db.String(40), primary_key=True)
@@ -53,6 +65,12 @@ class User(db.Model):
 
 
 class QueueVIP(db.Model):
+    """Users currently queued for a game.
+
+    Attributes:
+        id - user steam id
+        added - timestamp of user queue event
+    """
     __tablename__ = 'queue_vip'
 
     id = db.Column(db.String(40), db.ForeignKey('users.id'), primary_key=True)
@@ -64,13 +82,23 @@ class QueueVIP(db.Model):
 
 
 class MatchStatus(IntEnum):
+    """Possible status of a match."""
     Creation = 0
-    InProgress = 1
+    Progress = 1
     Cancelled = 2
     Over = 3
 
 
 class MatchVIP(db.Model):
+    """Table of all the matches in the league.
+
+    Attributes:
+        id - unique match ID
+        created - timestamp of the match creation event
+        status - current status of the match, of type MatchStatus
+        password - password of the Dota lobby
+    """
+
     __tablename__= 'match_vip'
 
     id = db.Column(db.Integer, primary_key=True)
