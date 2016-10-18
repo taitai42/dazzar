@@ -1,18 +1,13 @@
-##############
-# Deployment #
-##############
-
-deploy:
-	sudo mkdir -p /docker/dazzar_web
-	sudo mkdir -p /docker/dazzar_postgres
-	sudo rsync -av --delete --exclude .git --exclude .idea . /docker/dazzar_web
-
 ############
 # Database #
 ############
 
+# Create dabase persistence
+/docker/dazzar_postgres:
+	sudo mkdir -p $@
+
 # Start db
-db-start: deploy db-stop
+db-start: /docker/dazzar_postgres
 	docker-compose -f docker/docker-compose.yml up -d --build dazzar_postgres
 
 # Stop db
@@ -21,15 +16,17 @@ db-stop:
 	-docker rm dazzar_postgres
 
 # Migrate database from models
-db-migrate: build deploy
-	docker run --rm --name dazzar_migrate --link dazzar_postgres -v /docker/dazzar_web:/dazzar -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate
-	rsync -av /docker/dazzar_web/migrations/versions $$(pwd)/migrations
-	cd migrations/versions && chown -R `stat . -c %u:%g` *
-	rm -rf migrations/versions/__pycache__
+db-migrate: build
+	mkdir -p /tmp/migrations
+	rsync -av --delete migrations /tmp
+	docker run --rm --name dazzar_migrate --link dazzar_postgres -v /tmp/migrations:/migrations -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
+	rsync -av --exclude __pycache__ /tmp/migrations .
+	sudo chown -R `stat . -c %u:%g` migrations/versions/*
+	sudo rm -rf /tmp/migrations
 
 # Upgrade database on running postgres
-db-upgrade: build deploy
-	docker run --rm --name dazzar_upgrade --link dazzar_postgres -v /docker/dazzar_web:/dazzar -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db upgrade
+db-upgrade: build
+	docker run --rm --name dazzar_upgrade --link dazzar_postgres -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db upgrade
 
 ###########
 # General #
@@ -50,15 +47,15 @@ all-stop:
 
 # Start all
 all-start:
-	docker-compose -f docker/docker-compose.yml up -d
+	docker-compose -f docker/docker-compose.yml up -d --build
 
 # Start web
-web-start: build deploy
-	docker-compose -f docker/docker-compose.yml up dazzar_web
+web-start:
+	docker-compose -f docker/docker-compose.yml up --build dazzar_web
 
 # Start bot
-bot-start: build deploy
-	docker-compose -f docker/docker-compose.yml up dazzar_bot
+bot-start:
+	docker-compose -f docker/docker-compose.yml up --build dazzar_bot
 
 # Build
 build:

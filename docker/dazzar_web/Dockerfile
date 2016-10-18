@@ -18,4 +18,9 @@ RUN pip3 install \
     Flask-OpenID \
     Flask-Login
 
+RUN mkdir -p /dazzar
 ENV PYTHONPATH $PYTHONPATH:/dazzar
+
+COPY migrations /dazzar/migrations
+COPY common /dazzar/common
+COPY web /dazzar/web
