@@ -19,7 +19,7 @@ db-stop:
 db-migrate: build
 	mkdir -p /tmp/migrations
 	rsync -av --delete migrations /tmp
-	docker run --rm --name dazzar_migrate --link dazzar_postgres -v /tmp/migrations:/migrations -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
+	-docker run --rm --name dazzar_migrate --link dazzar_postgres -v /tmp/migrations:/migrations -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
 	rsync -av --exclude __pycache__ /tmp/migrations .
 	sudo chown -R `stat . -c %u:%g` migrations/versions/*
 	sudo rm -rf /tmp/migrations

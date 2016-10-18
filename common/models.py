@@ -8,13 +8,9 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
-class UserBasicRights(IntEnum):
-    """A user basic rights is a number where each bit is special access."""
-    Default = 0
-    Banned = 1
-    AdminRights = 2
-    PlayVIP = 4
-    VouchVIP = 8
+permissions = db.Table('permissions',
+                       db.Column('permission_id', db.Integer, db.ForeignKey('user_permission.id')),
+                       db.Column('user_id', db.String(40), db.ForeignKey('user.id')))
 
 
 class User(db.Model):
@@ -23,17 +19,18 @@ class User(db.Model):
     Attributes:
         id - unique id, steam ID
         nickname - unique nickname of the user, None at the first logging
-        basic_rights - bitwise agglomerate of UserBasicRights
+        permissions - permissions of the current user
     Methods:
-        has_right - test if user has a specific right
-        give_right - give a specific right to the user (need commit afterwards)
+        has_permission - test if user has a specific permission
+        give_permission - give a specific permission to the user
         get_or_create - return user of given steam id, create it if necessary
     """
-    __tablename__ = 'users'
+    __tablename__ = 'user'
 
     id = db.Column(db.String(40), primary_key=True)
     nickname = db.Column(db.String(20), nullable=True, index=True)
-    basic_rights = db.Column(db.Integer, nullable=False, default=0)
+    permissions = db.relationship('UserPermission', secondary=permissions,
+                                  lazy='dynamic', backref=db.backref('users', lazy='dynamic'))
 
     def is_authenticated(self):
         return True
@@ -47,11 +44,17 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
-    def has_right(self, right):
-        return (right | self.basic_rights) > 0
+    def has_permission(self, name):
+        permission = UserPermission.query.filter_by(name=name).first()
+        if not permission or not permission in self.permissions:
+            return False
+        return True
 
-    def give_rights(self, right):
-        self.basic_rights = self.basic_rights & right
+    def give_permission(self, name):
+        permission = UserPermission.query.filter_by(name=name).first()
+        if permission or permission in self.permissions:
+            return
+        self.permissions.append(permission)
 
     @staticmethod
     def get_or_create(steam_id):
@@ -64,6 +67,19 @@ class User(db.Model):
         return rv
 
 
+class UserPermission(db.Model):
+    """A possible permission for a user.
+
+    Attributes:
+        id - unique permission ID
+        name - name of the permission (cf constants)
+    """
+    __tablename__ = 'user_permission'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20))
+
+
 class QueueVIP(db.Model):
     """Users currently queued for a game.
 
@@ -73,7 +89,7 @@ class QueueVIP(db.Model):
     """
     __tablename__ = 'queue_vip'
 
-    id = db.Column(db.String(40), db.ForeignKey('users.id'), primary_key=True)
+    id = db.Column(db.String(40), db.ForeignKey('user.id'), primary_key=True)
     added = db.Column(db.DateTime, index=True, nullable=False)
 
     def __init__(self, id):
