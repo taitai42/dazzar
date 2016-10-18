@@ -63,7 +63,7 @@
         <div class="col-md-2 sidebar">
             <ul class="nav nav-sidebar">
                 <li class="active"><a href="{{ url_for('index') }}">Index</a></li>
-                <li><a href="#">Utilisateurs</a></li>
+                <li><a href="{{ url_for('user_blueprint.users') }}">Utilisateurs</a></li>
             </ul><br />
             <ul class="nav nav-sidebar">
                 <li><a href="{{ url_for('ladder_scoreboard') }}">Ladder - Scores</a></li>

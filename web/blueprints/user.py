@@ -41,4 +41,14 @@ def make_blueprint():
 
         abort(404)
 
+    @user_blueprint.route('/users')
+    def users():
+        """Page to list all users of the website"""
+        return render_template('users.html')
+
+    @user_blueprint.route('/api/users')
+    def api_users():
+        """Endpoint for the datatable to request users."""
+        return '{"users": []}'
+
     return user_blueprint
