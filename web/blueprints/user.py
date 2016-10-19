@@ -1,10 +1,11 @@
-import re
+import re, logging
 
-from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template
+from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user
 
-from common.models import db, User
+from common.models import db, User, UserPermission
 from common.helpers import validate_nickname
+import common.constants as constants
 
 
 def make_blueprint():
@@ -49,6 +50,34 @@ def make_blueprint():
     @user_blueprint.route('/api/users')
     def api_users():
         """Endpoint for the datatable to request users."""
-        return '{"users": []}'
+
+        draw = request.args.get('draw', '1')
+        search = request.args.get('search[value]', '')
+        length = 50
+        start = int(request.args.get('start', '0'))
+
+        query = User.query\
+            .filter(User.nickname is not None)\
+            .order_by(User.nickname)\
+
+        count = query.count()
+
+        query = query.offset(start)\
+            .limit(length)
+
+        data = []
+        for user in query.all():
+            permissions = ""
+            permissions += "A " if user.has_permission(constants.PERMISSION_ADMIN) else "- "
+            permissions += "V " if user.has_permission(constants.PERMISSION_VOUCH_VIP) else "- "
+            permissions += "J " if user.has_permission(constants.PERMISSION_PLAY_VIP) else "- "
+            data.append([user.nickname, permissions])
+        results = {
+            "draw": draw,
+            "recordsTotal": count,
+            "recordsFiltered": count,
+            "data": data
+        }
+        return jsonify(results)
 
     return user_blueprint

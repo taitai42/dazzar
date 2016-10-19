@@ -34,16 +34,16 @@ db-upgrade: build
 
 # stop all running dockers
 all-stop:
-	-docker stop dazzar_postgres
-	-docker rm dazzar_postgres
-	-docker stop dazzar_upgrade
-	-docker rm dazzar_upgrade
-	-docker stop dazzar_migrate
-	-docker rm dazzar_migrate
 	-docker stop dazzar_web
 	-docker rm dazzar_web
 	-docker stop dazzar_bot
 	-docker rm dazzar_bot
+	-docker stop dazzar_upgrade
+	-docker rm dazzar_upgrade
+	-docker stop dazzar_migrate
+	-docker rm dazzar_migrate
+	-docker stop dazzar_postgres
+	-docker rm dazzar_postgres
 
 # start all
 all-start:

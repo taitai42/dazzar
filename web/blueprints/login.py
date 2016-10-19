@@ -1,8 +1,7 @@
-import re
+import re, logging
 
 from flask import Blueprint, current_app, request, url_for, redirect, render_template
 from flask_login import LoginManager, current_user, login_user, login_required, logout_user
-from flask_openid import OpenID
 
 from common.models import User
 
@@ -29,17 +28,18 @@ def make_blueprint(oid, login_manager):
         logout_user()
         return redirect(url_for('index'))
 
-    @login_blueprint.before_request
+    @login_blueprint.before_app_request
     def nickname_checker():
         """Function that test user nickname before each request.
         If not define, it redirects to the setup page.
         """
-        if request.endpoint == 'nickname' or request.endpoint == 'logout':
+        if not current_user.is_authenticated or current_user.nickname is not None:
             return None
-
-        if current_user.is_authenticated and (current_user.nickname is None):
-            return redirect(url_for('user_blueprint.nickname'))
-        return None
+        if request.endpoint in ['user_blueprint.nickname',
+                                'login_blueprint.logout',
+                                'static']:
+            return None
+        return redirect(url_for('user_blueprint.nickname'))
 
     @login_blueprint.route('/login/steam')
     @oid.loginhandler

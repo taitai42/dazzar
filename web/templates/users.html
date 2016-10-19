@@ -3,6 +3,46 @@
 <h1 class="page-header">Utilisateurs</h1>
 
 <div class="container">
-    <p>Users</p>
+    <p>Les utilisateurs peuvent être Admin (A), Voucher (V) ou joueur (J).</p>
+    <table id="users" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Utilisateur</th>
+                <th>Permissions</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
 </div>
+{% endblock %}
+
+{% block endscripts %}
+<script>
+    $(document).ready(function() {
+        $('#users').DataTable({
+            "paging": true,
+            "ordering": false,
+            "lengthChange": false,
+            "pageLength": 50,
+            "info": false,
+            "language": {
+                "loadingRecords": "Chargement...",
+                "processing": "Chargement...",
+                "emptyTable": "Aucun résultat.",
+                "search": "Rechercher:",
+                "paginate": {
+                    "first":      "Premier",
+                    "last":       "Dernier",
+                    "next":       "Suivant",
+                    "previous":   "Précédent"
+                }
+            },
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{{ url_for('user_blueprint.api_users') }}"
+        });
+    } );
+</script>
 {% endblock %}
