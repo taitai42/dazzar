@@ -16,11 +16,9 @@ RUN pip3 install \
     Flask-SQLAlchemy \
     SQLAlchemy \
     Flask-OpenID \
-    Flask-Login
+    Flask-Login \
+    Flask-Script
 
-RUN mkdir -p /dazzar
 ENV PYTHONPATH $PYTHONPATH:/dazzar
 
-COPY migrations /dazzar/migrations
-COPY common /dazzar/common
-COPY web /dazzar/web
+COPY . /dazzar/

@@ -12,3 +12,5 @@ RUN pip3 install \
     tornado
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar
+
+COPY . /dazzar/

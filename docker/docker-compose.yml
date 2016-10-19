@@ -33,8 +33,6 @@ services:
     container_name: "dazzar_bot"
     build:
       context: dazzar_bot
-    volumes:
-      - "/docker/dazzar_web:/dazzar"
     depends_on:
       - dazzar_postgres
     entrypoint: python3 /dazzar/bot/bot_application.py

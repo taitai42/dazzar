@@ -52,9 +52,10 @@ class User(db.Model):
 
     def give_permission(self, name):
         permission = UserPermission.query.filter_by(name=name).first()
-        if permission or permission in self.permissions:
-            return
+        if (permission is None) or (permission in self.permissions):
+            return False
         self.permissions.append(permission)
+        return True
 
     @staticmethod
     def get_or_create(steam_id):

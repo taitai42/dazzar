@@ -38,10 +38,6 @@ all-stop:
 	-docker rm dazzar_web
 	-docker stop dazzar_bot
 	-docker rm dazzar_bot
-	-docker stop dazzar_upgrade
-	-docker rm dazzar_upgrade
-	-docker stop dazzar_migrate
-	-docker rm dazzar_migrate
 	-docker stop dazzar_postgres
 	-docker rm dazzar_postgres
 
@@ -56,6 +52,12 @@ web-start:
 # start bot
 bot-start:
 	docker-compose -f docker/docker-compose.yml up --build dazzar_bot
+
+
+# scripts
+SCRIPT?=make_admin -i 76561197961298382
+script: build
+	docker run --rm --name dazzar_script --link dazzar_postgres -w /dazzar dazzar_web python3 /dazzar/common/scripts.py $(SCRIPT)
 
 # build
 build:
