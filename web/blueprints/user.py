@@ -82,11 +82,36 @@ def make_blueprint():
 
     @user_blueprint.route('/user/<string:steam_id>')
     def user(steam_id):
-        """Page to list all users of the website"""
+        """Page to list all users of the website.
+
+        Parameters
+            steam_id - user to return the detailed page of
+        """
         user_requested = User.query.filter_by(id=steam_id).first()
         if user_requested is None:
             abort(404)
         else:
             return render_template('user.html', user=user_requested)
+
+    @user_blueprint.route('/permission/<string:steam_id>/<string:permission>/<string:give>')
+    def user_permission(steam_id, permission, give):
+        """Modify user permission according to parameters.
+
+        Parameters
+            steam_id - user to modify
+            permission - right to change
+            give - boolean to decide to add permission or remove
+        """
+        give = give == 'True'
+        target_user = User.query.filter_by(id=steam_id).first()
+        if target_user is None:
+            return redirect(url_for('user_blueprint.user', steam_id=steam_id))
+
+        if current_user.is_authenticated and ((permission == constants.PERMISSION_ADMIN and current_user.has_permission(constants.PERMISSION_ADMIN))
+                                              or (permission == constants.PERMISSION_VOUCH_VIP and current_user.has_permission(constants.PERMISSION_ADMIN))
+                                              or (permission == constants.PERMISSION_PLAY_VIP and current_user.has_permission(constants.PERMISSION_VOUCH_VIP))):
+            target_user.give_permission(permission, give)
+            db.session().commit()
+        return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 
     return user_blueprint

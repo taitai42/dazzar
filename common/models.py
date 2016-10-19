@@ -50,12 +50,15 @@ class User(db.Model):
             return False
         return True
 
-    def give_permission(self, name):
+    def give_permission(self, name, give):
         permission = UserPermission.query.filter_by(name=name).first()
-        if (permission is None) or (permission in self.permissions):
-            return False
-        self.permissions.append(permission)
-        return True
+        if permission is None:
+            return
+
+        if give and permission not in self.permissions:
+            self.permissions.append(permission)
+        elif not give and permission in self.permissions:
+            self.permissions.remove(permission)
 
     @staticmethod
     def get_or_create(steam_id):

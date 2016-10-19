@@ -24,7 +24,7 @@ def make_admin(steam_id):
     if user is None:
         print('No user to raise admin.')
     else:
-        user.give_permission(constants.PERMISSION_ADMIN)
+        user.give_permission(constants.PERMISSION_ADMIN, True)
         db.session().commit()
 
 
