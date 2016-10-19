@@ -71,7 +71,7 @@ def make_blueprint():
             permissions += "A " if user.has_permission(constants.PERMISSION_ADMIN) else "- "
             permissions += "V " if user.has_permission(constants.PERMISSION_VOUCH_VIP) else "- "
             permissions += "J " if user.has_permission(constants.PERMISSION_PLAY_VIP) else "- "
-            data.append([user.nickname, permissions])
+            data.append([user.id, user.nickname, permissions])
         results = {
             "draw": draw,
             "recordsTotal": count,
@@ -79,5 +79,14 @@ def make_blueprint():
             "data": data
         }
         return jsonify(results)
+
+    @user_blueprint.route('/user/<string:steam_id>')
+    def user(steam_id):
+        """Page to list all users of the website"""
+        user_requested = User.query.filter_by(id=steam_id).first()
+        if user_requested is None:
+            abort(404)
+        else:
+            return render_template('user.html', user=user_requested)
 
     return user_blueprint

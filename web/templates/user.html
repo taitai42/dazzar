@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block body %}
+<h1 class="page-header">Détails de l'Utilisateur</h1>
+
+<div class="container">
+    <ul>
+        <li>Pseudo: {{ user.nickname }}</li>
+        <li>SteamID: {{ user.id }}</li>
+
+        <li>Admin: {{ user.has_permission("admin") }}
+        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
+            {% if user.has_permission("admin") %}
+            Retirer droits d'administration
+            {% else %}
+            Donner droits d'administration
+            {% endif %}
+        {% endif %}
+        </li>
+
+        <li>Voucher: {{ user.has_permission("vouch_vip") }}</li>
+        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
+            {% if user.has_permission("vouch_vip") %}
+            Retirer la permission de gérer les joueurs
+            {% else %}
+            Donner la permission de gérer les joueurs
+            {% endif %}
+        {% endif %}
+
+        <li>Joueur VIP: {{ user.has_permission("play_vip") }}</li>
+        {% if current_user.is_authenticated and current_user.has_permission("vouch_vip") %}
+            {% if user.has_permission("play_vip") %}
+            Retirer la permission de jouer VIP
+            {% else %}
+            Donner la permission de jouer VIP
+            {% endif %}
+        {% endif %}
+
+    </ul>
+</div>
+{% endblock %}
