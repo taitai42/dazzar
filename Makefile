@@ -26,7 +26,7 @@ db-migrate: build
 
 # upgrade database on running postgres
 db-upgrade: build
-	docker run --rm --name dazzar_upgrade --link dazzar_postgres -w /dazzar -e flask_app=/dazzar/web/web_application.py dazzar_web flask db upgrade
+	docker run --rm --name dazzar_upgrade --link dazzar_postgres -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db upgrade
 
 ###########
 # general #
