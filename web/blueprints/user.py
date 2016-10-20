@@ -73,8 +73,11 @@ def make_blueprint():
         start = int(request.args.get('start', '0'))
 
         query = User.query\
-            .filter(User.nickname.isnot(None))\
             .order_by(User.nickname)\
+            .filter(User.nickname.isnot(None))
+
+        if search != '':
+            query = query.filter(User.nickname.like('%' + search + '%'))
 
         count = query.count()
 
