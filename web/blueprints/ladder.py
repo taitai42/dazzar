@@ -3,7 +3,7 @@ import re, logging
 from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
-from common.models import db, User, QueueVIP
+from common.models import db, User, QueueVIP, MatchVIP
 import common.constants as constants
 
 
@@ -31,6 +31,11 @@ def make_blueprint():
         """Displays the league scoreboard."""
         return render_template('ladder_scoreboard.html')
 
+    @ladder_blueprint.route('/ladder/matches')
+    def ladder_matches():
+        """Displays the league matches."""
+        return render_template('ladder_matches.html')
+
     @ladder_blueprint.route('/queue/<string:add>')
     def queue(add):
         """Queue or dequeue current user."""
@@ -39,9 +44,21 @@ def make_blueprint():
         if current_user.is_authenticated and current_user.has_permission(constants.PERMISSION_PLAY_VIP):
             if add:
                 if QueueVIP.query.filter_by(id=current_user.id).first() is None:
-                    new_queue = QueueVIP(current_user.id)
-                    db.session().add(new_queue)
-                    db.session().commit()
+                    # Add if less than 9 players, create a game otherwise
+                    query = QueueVIP.query.order_by(QueueVIP.added).limit(9)
+                    if query.count() < 9:
+                        new_queue = QueueVIP(current_user.id)
+                        db.session().add(new_queue)
+                        db.session().commit()
+                    else:
+                        players = [current_user.id]
+                        for player in query.all():
+                            players.append(player.id)
+                            db.session().delete(player)
+                        new_match = MatchVIP(players)
+                        db.session().add(new_match)
+                        db.session().commit()
+                        return redirect(url_for('ladder_blueprint.ladder_play'))
             else:
                 remove_queue = QueueVIP.query.filter_by(id=current_user.id).first()
                 if remove_queue is not None:

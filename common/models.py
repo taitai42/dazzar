@@ -1,9 +1,11 @@
-from enum import IntEnum
+
 from datetime import datetime
 import string
 import random
 
 from flask_sqlalchemy import SQLAlchemy
+
+import common.constants as constants
 
 db = SQLAlchemy()
 
@@ -101,12 +103,10 @@ class QueueVIP(db.Model):
         self.added = datetime.now()
 
 
-class MatchStatus(IntEnum):
-    """Possible status of a match."""
-    Creation = 0
-    Progress = 1
-    Cancelled = 2
-    Over = 3
+players = db.Table('players',
+    db.Column('user_id', db.String(40), db.ForeignKey('user.id')),
+    db.Column('match_vip_id', db.Integer, db.ForeignKey('match_vip.id'))
+)
 
 
 class MatchVIP(db.Model):
@@ -125,10 +125,11 @@ class MatchVIP(db.Model):
     created = db.Column(db.DateTime, index=True, nullable=False)
     status = db.Column(db.Integer, nullable=False)
     password = db.Column(db.String(20), nullable=False)
+    players = db.relationship('User', secondary=players, backref=db.backref('matches', lazy='dynamic'))
 
-    def __init__(self):
+    def __init__(self, players):
         self.created = datetime.now()
-        self.status = MatchStatus.Creation
+        self.status = constants.MATCH_STATUS_CREATION
         self.password = 'dz_'
-        for i in range[0:3]:
+        for i in range(0,4):
             self.password += random.choice(string.ascii_lowercase + string.digits)

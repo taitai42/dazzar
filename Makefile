@@ -15,7 +15,7 @@ db-stop:
 db-migrate: build
 	-docker run --rm --name dazzar_migrate --link dazzar_postgres -v $$(pwd)/migrations:/migrations -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
 	sudo rm -rf migrations/__pycache__ migrations/versions/__pycache__
-	sudo chown -r `stat . -c %u:%g` migrations/versions/*
+	sudo chown -R `stat . -c %u:%g` migrations/versions/*
 
 
 # upgrade database on running postgres
