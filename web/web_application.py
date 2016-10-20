@@ -30,9 +30,12 @@ login_manager.login_view = 'login_blueprint.login'
 
 import web.blueprints.login as login_blueprint
 import web.blueprints.user as user_blueprint
+import web.blueprints.ladder as ladder_blueprint
+
 
 app.register_blueprint(login_blueprint.make_blueprint(oid, login_manager))
 app.register_blueprint(user_blueprint.make_blueprint())
+app.register_blueprint(ladder_blueprint.make_blueprint())
 
 ##########
 # Routes #
@@ -43,19 +46,6 @@ app.register_blueprint(user_blueprint.make_blueprint())
 def index():
     """Main page with rules and more..."""
     return render_template('index.html')
-
-
-@app.route('/ladder/play')
-@login_required
-def ladder_play():
-    """Page to enter the league queue."""
-    return render_template('ladder_play.html')
-
-
-@app.route('/ladder/scoreboard')
-def ladder_scoreboard():
-    """Displays the league scoreboard."""
-    return render_template('ladder_scoreboard.html')
 
 
 ############################

@@ -1,5 +1,3 @@
-import re, logging
-
 from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user
 

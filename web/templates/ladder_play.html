@@ -1,8 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
-<h1 class="page-header"> Jouer sur le Ladder</h1>
+<h1 class="page-header">Jouer sur le Ladder</h1>
 
 <div class="container">
-    <p>Il n'existe pas encore de fonctionnalité pour Jouer.</p>
+    {% if not current_user.has_permission('play_vip') %}
+        Vous devez être vouched pour jouer sur le ladder VIP, contactez un Voucher que vous connaissez pour qu'il
+    évalue votre profil.
+    {% else %}
+        Rentrez Dans la Queue
+    {% endif %}
 </div>
 {% endblock %}
