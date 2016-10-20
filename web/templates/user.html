@@ -6,6 +6,7 @@
     <ul>
         <li>Pseudo: {{ user.nickname }}</li>
         <li>SteamID: {{ user.id }}</li>
+        <li><a href="http://www.dotabuff.com/players/{{ user.id }}">Dotabuff</a> & <a href="http://steamcommunity.com/profiles/{{ user.id }}">Steam Profile</a></li>
 
         <li>Admin:
             {% if user.has_permission("admin") %}
