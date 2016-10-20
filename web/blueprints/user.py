@@ -42,6 +42,22 @@ def make_blueprint():
 
         abort(404)
 
+    @user_blueprint.route('/nickname/delete/<string:steam_id>')
+    def nickname_delete(steam_id):
+        """Delete user nickname if admin.
+        Force user to chose a new one.
+
+        Parameters:
+            steam_id - user concerned
+        """
+        target_user = User.query.filter_by(id=steam_id).first()
+        if target_user is not None \
+            and current_user.is_authenticated \
+            and current_user.has_permission(constants.PERMISSION_ADMIN):
+            target_user.nickname = None
+            db.session().commit()
+        return redirect(url_for('user_blueprint.user', steam_id=steam_id))
+
     @user_blueprint.route('/users')
     def users():
         """Page to list all users of the website"""

@@ -5,6 +5,9 @@
 <div class="container">
     <ul>
         <li>Pseudo: {{ user.nickname }}</li>
+        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
+            <a href="{{ url_for('user_blueprint.nickname_delete', steam_id=user.id) }}">Supprimer le pseudo du joueur (force nouveau choix)</a>
+        {% endif %}
         <li>SteamID: {{ user.id }}</li>
         <li><a href="http://www.dotabuff.com/players/{{ user.id }}">Dotabuff</a> & <a href="http://steamcommunity.com/profiles/{{ user.id }}">Steam Profile</a></li>
 
