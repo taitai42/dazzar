@@ -7,7 +7,19 @@
         Vous devez être vouched pour jouer sur le ladder VIP, contactez un Voucher que vous connaissez pour qu'il
     évalue votre profil.
     {% else %}
-        Rentrez Dans la Queue
+        {% if in_queue %}
+            <a href="{{ url_for('ladder_blueprint.queue', add='False') }}">Sortir de la Queue</a>
+        {% else %}
+            <a href="{{ url_for('ladder_blueprint.queue', add='True') }}">Rentrez Dans la Queue</a>
+        {% endif %}
     {% endif %}
+    </p>
+    <p> Queue actuelle de {{ current_queue|length }} joueurs.
+    <ul>
+        {% for user in current_queue %}
+            <li><a href="{{ url_for('user_blueprint.user', steam_id=user.id) }}">{{ user.nickname }}</a></li>
+        {% endfor %}
+    </ul>
+    </p>
 </div>
 {% endblock %}
