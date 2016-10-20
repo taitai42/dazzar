@@ -99,7 +99,7 @@ def make_blueprint():
 
     @user_blueprint.route('/user/<string:steam_id>')
     def user(steam_id):
-        """Page to list all users of the website.
+        """Page to give details of a user.
 
         Parameters
             steam_id - user to return the detailed page of

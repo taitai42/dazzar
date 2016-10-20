@@ -125,7 +125,7 @@ class MatchVIP(db.Model):
     created = db.Column(db.DateTime, index=True, nullable=False)
     status = db.Column(db.Integer, nullable=False)
     password = db.Column(db.String(20), nullable=False)
-    players = db.relationship('User', secondary=players, backref=db.backref('matches', lazy='dynamic'))
+    players = db.relationship('User', secondary=players, lazy='joined', backref=db.backref('matches', lazy='dynamic'))
 
     def __init__(self, players):
         self.created = datetime.now()
@@ -133,3 +133,5 @@ class MatchVIP(db.Model):
         self.password = 'dz_'
         for i in range(0,4):
             self.password += random.choice(string.ascii_lowercase + string.digits)
+        for player in User.query.filter(User.id.in_(players)).all():
+            self.players.append(player)

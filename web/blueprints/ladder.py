@@ -36,6 +36,46 @@ def make_blueprint():
         """Displays the league matches."""
         return render_template('ladder_matches.html')
 
+    @ladder_blueprint.route('/api/ladder/matches')
+    def api_matches():
+        """Endpoint for the datatable to request matches."""
+
+        draw = request.args.get('draw', '1')
+        length = 20
+        start = int(request.args.get('start', '0'))
+
+        query = MatchVIP.query \
+            .order_by(MatchVIP.created.desc())
+
+        count = query.count()
+
+        query = query.offset(start) \
+            .limit(length)
+
+        data = []
+        for match in query.all():
+            data.append([match.id, match.created, match.status])
+        results = {
+            "draw": draw,
+            "recordsTotal": count,
+            "recordsFiltered": count,
+            "data": data
+        }
+        return jsonify(results)
+
+    @ladder_blueprint.route('/ladder/match/<int:match_id>')
+    def match(match_id):
+        """Page to give details of a match
+
+        Parameters
+            match_id - match to return the detailed page of
+        """
+        match_requested = MatchVIP.query.filter_by(id=match_id).first()
+        if match_requested is None:
+            abort(404)
+        else:
+            return render_template('ladder_match.html', match=match_requested)
+
     @ladder_blueprint.route('/queue/<string:add>')
     def queue(add):
         """Queue or dequeue current user."""
