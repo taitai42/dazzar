@@ -2,12 +2,8 @@
 # database #
 ############
 
-# create dabase persistence
-/docker/dazzar_postgres:
-	sudo mkdir -p $@
-
 # start db
-db-start: /docker/dazzar_postgres
+db-start:
 	docker-compose -f docker/docker-compose.yml up -d --build dazzar_postgres
 
 # stop db
@@ -17,9 +13,7 @@ db-stop:
 
 # migrate database from models
 db-migrate: build
-	mkdir -p /tmp/migrations
-	rsync -av --delete migrations /tmp
-	-docker run --rm --name dazzar_migrate --link dazzar_postgres -v $$(pwd)/migrations:/migrations -w /dazzar -e flask_app=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
+	-docker run --rm --name dazzar_migrate --link dazzar_postgres -v $$(pwd)/migrations:/migrations -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
 	sudo rm -rf migrations/__pycache__ migrations/versions/__pycache__
 	sudo chown -r `stat . -c %u:%g` migrations/versions/*
 

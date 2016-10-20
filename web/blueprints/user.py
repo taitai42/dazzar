@@ -57,7 +57,7 @@ def make_blueprint():
         start = int(request.args.get('start', '0'))
 
         query = User.query\
-            .filter(User.nickname is not None)\
+            .filter(User.nickname.isnot(None))\
             .order_by(User.nickname)\
 
         count = query.count()
