@@ -5,8 +5,10 @@
 <div class="container">
     <p>Vous n'avez pas encore de pseudo sur Dazzar. Vous devez en choisir un (unique) pour être reconnu sur la plateforme.<br />
         <form>
-            Pseudo:
-            <input type="text" name="nickname">
+            Choisissez votre pseudo <input type="text" name="nickname">
+            {% if error != '' %}
+            <p class="text-danger">{{ error }}</p>
+            {% endif %}
             <input type="submit" formmethod="post" formaction="{{ url_for('user_blueprint.nickname') }}" value="Valider">
         </form>
     </p>

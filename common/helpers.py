@@ -22,4 +22,4 @@ def validate_nickname(nickname):
     if valid_nick_re.match(nickname):
         return None
     else:
-        return "Pseudo non valide."
+        return "Pseudo non valide, seuls sont autorisés les caractères alphanumériques ainsi que '_' et '.'."
