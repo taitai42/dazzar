@@ -33,6 +33,7 @@ class User(db.Model):
     nickname = db.Column(db.String(20), nullable=True, index=True)
     permissions = db.relationship('UserPermission', secondary=permissions,
                                   lazy='dynamic', backref=db.backref('users', lazy='dynamic'))
+    current_match = db.Column(db.Integer, db.ForeignKey('match_vip.id'), nullable=True)
 
     def is_authenticated(self):
         return True
@@ -122,10 +123,10 @@ class MatchVIP(db.Model):
     __tablename__= 'match_vip'
 
     id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.Integer, index=True, nullable=False)
     created = db.Column(db.DateTime, index=True, nullable=False)
-    status = db.Column(db.Integer, nullable=False)
     password = db.Column(db.String(20), nullable=False)
-    players = db.relationship('User', secondary=players, lazy='joined', backref=db.backref('matches', lazy='dynamic'))
+    players = db.relationship('User', lazy='joined')
 
     def __init__(self, players):
         self.created = datetime.now()

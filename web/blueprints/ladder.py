@@ -81,7 +81,9 @@ def make_blueprint():
         """Queue or dequeue current user."""
         add = add == 'True'
 
-        if current_user.is_authenticated and current_user.has_permission(constants.PERMISSION_PLAY_VIP):
+        if current_user.is_authenticated \
+                and current_user.has_permission(constants.PERMISSION_PLAY_VIP)\
+                and current_user.current_match is None:
             if add:
                 if QueueVIP.query.filter_by(id=current_user.id).first() is None:
                     # Add if less than 9 players, create a game otherwise
@@ -98,6 +100,9 @@ def make_blueprint():
                         new_match = MatchVIP(players)
                         db.session().add(new_match)
                         db.session().commit()
+                        for user in new_match.players:
+                            user.current_game = new_match.id
+                        db.session.commit()
                         return redirect(url_for('ladder_blueprint.ladder_play'))
             else:
                 remove_queue = QueueVIP.query.filter_by(id=current_user.id).first()
