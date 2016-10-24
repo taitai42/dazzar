@@ -4,4 +4,7 @@ import time
 - Managing matches
 - Managing dota bots
 """
+
+print('Before sleep')
 time.sleep(10)
+print('After sleep')
