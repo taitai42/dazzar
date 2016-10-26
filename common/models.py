@@ -1,4 +1,3 @@
-
 from datetime import datetime
 import string
 import random
@@ -31,8 +30,8 @@ class User(db.Model):
 
     id = db.Column(db.String(40), primary_key=True)
     nickname = db.Column(db.String(20), nullable=True, index=True)
-    permissions = db.relationship('UserPermission', secondary=permissions,
-                                  lazy='dynamic', backref=db.backref('users', lazy='dynamic'))
+    permissions = db.relationship('UserPermission', secondary=permissions, lazy='dynamic',
+                                  backref=db.backref('users', lazy='dynamic'))
     current_match = db.Column(db.Integer, db.ForeignKey('match_vip.id'), nullable=True)
 
     def is_authenticated(self):
@@ -136,3 +135,20 @@ class MatchVIP(db.Model):
             self.password += random.choice(string.ascii_lowercase + string.digits)
         for player in User.query.filter(User.id.in_(players)).all():
             self.players.append(player)
+
+
+class MMRChecker(db.Model):
+    """Table of mmr check jobs to do related to users.
+
+    Attributes:
+        user_id - user to run the job on
+        status - Status of the request
+    """
+    __tablename__= 'mmr_checker'
+
+    id = db.Column(db.String(40), db.ForeignKey('user.id'), primary_key=True)
+    status = db.Column(db.Integer, index=True, nullable=False, default=constants.JOB_STEAM_STATUS_TODO)
+
+    def __init__(self, steam_id):
+        self.id = steam_id
+        self.status = constants.JOB_STEAM_STATUS_TODO

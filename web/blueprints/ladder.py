@@ -3,7 +3,7 @@ import re, logging
 from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
-from common.models import db, User, QueueVIP, MatchVIP
+from common.models import db, User, QueueVIP, MatchVIP, MMRChecker
 import common.constants as constants
 
 
@@ -18,13 +18,17 @@ def make_blueprint():
         Display the queue and enter/quit if user can play."""
         in_queue = False
         current_queue = []
+        solo_mmr_request = None
 
-        if current_user.is_authenticated() and current_user.has_permission(constants.PERMISSION_PLAY_VIP):
+        if current_user.has_permission(constants.PERMISSION_PLAY_VIP):
             if QueueVIP.query.filter_by(id=current_user.id).first() is not None:
                 in_queue = True
+        else:
+            solo_mmr_request = MMRChecker.query.filter_by(id=current_user.id).first()
         for user in QueueVIP.query.order_by(QueueVIP.added).limit(10).from_self().join(User).add_columns(User.id, User.nickname).all():
             current_queue.append(user)
-        return render_template('ladder_play.html', current_queue=current_queue, in_queue=in_queue)
+        return render_template('ladder_play.html', current_queue=current_queue, in_queue=in_queue,
+                               solo_mmr_request=solo_mmr_request)
 
     @ladder_blueprint.route('/ladder/scoreboard')
     def ladder_scoreboard():
@@ -70,13 +74,11 @@ def make_blueprint():
         Parameters
             match_id - match to return the detailed page of
         """
-        match_requested = MatchVIP.query.filter_by(id=match_id).first()
-        if match_requested is None:
-            abort(404)
-        else:
-            return render_template('ladder_match.html', match=match_requested)
+        match_requested = MatchVIP.query.filter_by(id=match_id).first_or_404()
+        return render_template('ladder_match.html', match=match_requested)
 
     @ladder_blueprint.route('/queue/<string:add>')
+    @login_required
     def queue(add):
         """Queue or dequeue current user."""
         add = add == 'True'

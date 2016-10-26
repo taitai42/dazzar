@@ -4,8 +4,18 @@
 
 <div class="container">
     {% if not current_user.has_permission('play_vip') %}
-        Vous devez être vouched pour jouer sur le ladder VIP, contactez un Voucher que vous connaissez pour qu'il
-    évalue votre profil.
+        Vous devez être vouched pour jouer sur le ladder VIP.<br />
+        {% if solo_mmr_request is none %}
+            Si vous avez plus de 5K MMR Solo, cliquez <a href="{{ url_for('user_blueprint.user_check_mmr') }}">ici</a> pour demander au bot de vous vouch.
+        {% else %}
+            {% if solo_mmr_request.status == 0 %}
+                Votre requête est en cours de traitement.
+            {% elif solo_mmr_request.status == 1 %}
+                Accepté mais pas vouched ? Erreur. <a href="{{ url_for('user_blueprint.user_check_mmr') }}">Réessayer</a>.
+            {% else %}
+                Votre requête a été refusée. Assurez vous que votre solo MMR soit visible sur votre profil. <a href="{{ url_for('user_blueprint.user_check_mmr') }}">Réessayer</a>.
+            {% endif %}
+        {% endif %}
     {% else %}
         {% if current_user.current_match is none %}
             {% if in_queue %}

@@ -9,24 +9,23 @@ class Config(object):
     (Only if exists and readable)
     """
 
-    DEBUG = False
-    TESTING = False
+    DEBUG = True
+    TESTING = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DATABASE_URI = 'sqlite://:memory:'
 
 
-def load_config(app):
-    """Load a configuration for the application.
+def load_config(config):
+    """Load a configuration for the Flask application.
     Starts with config object as a base
     Loads settings.cfg if exists and readable.
 
     Attributes:
         app - Application to load into
     """
-    app.config.from_object('common.configuration.Config')
+    config.from_object('common.configuration.Config')
     if isfile(os.path.join(os.path.dirname(__file__), 'settings.cfg')):
         try:
-            app.config.from_pyfile(os.path.join(os.path.dirname(__file__), 'settings.cfg'))
+            config.from_pyfile(os.path.join(os.path.dirname(__file__), 'settings.cfg'))
         except SyntaxError:
-            logging.getLogger('tornado.application').log(logging.WARNING, 'Impossible to interpret settings file, using default.')
-
+            logging.log(logging.ERROR, 'Impossible to interpret settings file, using default.')

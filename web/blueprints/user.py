@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template, jsonify
-from flask_login import current_user
+from flask_login import current_user, login_required
 
-from common.models import db, User, UserPermission
+from common.models import db, User, UserPermission, MMRChecker
 from common.helpers import validate_nickname
 import common.constants as constants
 
@@ -11,6 +11,7 @@ def make_blueprint():
     user_blueprint = Blueprint('user_blueprint', __name__)
 
     @user_blueprint.route('/nickname', methods=['GET', 'POST'])
+    @login_required
     def nickname():
         """User nickname creation page.
 
@@ -41,6 +42,7 @@ def make_blueprint():
         abort(404)
 
     @user_blueprint.route('/nickname/delete/<string:steam_id>')
+    @login_required
     def nickname_delete(steam_id):
         """Delete user nickname if admin.
         Force user to chose a new one.
@@ -104,13 +106,11 @@ def make_blueprint():
         Parameters
             steam_id - user to return the detailed page of
         """
-        user_requested = User.query.filter_by(id=steam_id).first()
-        if user_requested is None:
-            abort(404)
-        else:
-            return render_template('user.html', user=user_requested)
+        user_requested = User.query.filter_by(id=steam_id).first_or_404()
+        return render_template('user.html', user=user_requested)
 
     @user_blueprint.route('/permission/<string:steam_id>/<string:permission>/<string:give>')
+    @login_required
     def user_permission(steam_id, permission, give):
         """Modify user permission according to parameters.
 
@@ -130,5 +130,19 @@ def make_blueprint():
             target_user.give_permission(permission, give)
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
+
+    @user_blueprint.route('/user/check_mmr')
+    @login_required
+    def user_check_mmr():
+        """Queue a job to check the solo MMR of the selected user.
+        """
+        request = MMRChecker.query.filter_by(id=current_user.id).first()
+        if request is None:
+            request = MMRChecker(current_user.id)
+            db.session.add(request)
+        request.status = constants.JOB_STEAM_STATUS_TODO
+        db.session.commit()
+
+        return redirect(url_for('ladder_blueprint.ladder_play'))
 
     return user_blueprint

@@ -2,20 +2,21 @@
 # Application Setup #
 #####################
 
-import re
-
-from flask import Flask, abort, jsonify, request, render_template, url_for, session, json, g, redirect, abort
+from flask import Flask, render_template
 from flask_migrate import Migrate
-from flask_login import LoginManager, current_user, login_user, logout_user, login_required
+from flask_login import LoginManager
 from flask_openid import OpenID
 
-from common.models import db, User
+from common.models import db
 from common.configuration import load_config
 
 
-app = Flask(__name__)
-load_config(app)
-db.init_app(app)
+def create_app():
+    app = Flask(__name__)
+    load_config(app.config)
+    db.init_app(app)
+    return app
+app = create_app()
 migrate = Migrate(app, db)
 
 oid = OpenID(app, store_factory=lambda: None)

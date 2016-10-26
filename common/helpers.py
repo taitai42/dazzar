@@ -7,7 +7,7 @@ valid_nick_re = re.compile('^(?=.{3,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<!
 def validate_nickname(nickname):
     """ Validate the nickname entered.
 
-    Attributes:
+    Arguments:
         nickname - value to test
     Return:
         None if validated, a string to describe the error otherwise

@@ -12,7 +12,14 @@ RUN apt-get -y install \
 
 RUN pip3 install \
     psycopg2 \
-    SQLAlchemy
+    SQLAlchemy \
+    tornado \
+    Flask \
+    Flask-Migrate \
+    Flask-SQLAlchemy \
+    Flask-OpenID \
+    Flask-Login \
+    Flask-Script
 RUN pip3 install git+https://github.com/ValvePython/dota2
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar
