@@ -5,11 +5,14 @@
 # start db
 db-start:
 	docker-compose -f docker/docker-compose.yml up -d --build dazzar_postgres
+	docker-compose -f docker/docker-compose.yml up -d dazzar_rabbitmq
 
 # stop db
 db-stop:
 	-docker stop dazzar_postgres
 	-docker rm dazzar_postgres
+	-docker stop dazzar_rabbitmq
+	-docker rm dazzar_rabbitmq
 
 # migrate database from models
 db-migrate: build
@@ -34,6 +37,8 @@ all-stop:
 	-docker rm dazzar_bot
 	-docker stop dazzar_postgres
 	-docker rm dazzar_postgres
+	-docker stop dazzar_rabbitmq
+	-docker rm dazzar_rabbitmq
 
 # start all
 all-start:

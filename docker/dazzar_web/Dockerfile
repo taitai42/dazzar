@@ -17,7 +17,8 @@ RUN pip3 install \
     SQLAlchemy \
     Flask-OpenID \
     Flask-Login \
-    Flask-Script
+    Flask-Script \
+    pika
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar
 

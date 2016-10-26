@@ -15,6 +15,12 @@ services:
       - './dazzar_postgres/conf.env'
     network_mode: "bridge"
 
+  dazzar_rabbitmq:
+    container_name: "dazzar_rabbitmq"
+    image: rabbitmq
+    hostname: dazzar_rabbitmq
+    network_mode: "bridge"
+
   dazzar_web:
     image: dazzar_web
     container_name: "dazzar_web"
@@ -27,8 +33,10 @@ services:
     network_mode: "bridge"
     external_links:
       - dazzar_postgres
+      - dazzar_rabbitmq
     depends_on:
       - dazzar_postgres
+      - dazzar_rabbitmq
 
   dazzar_bot:
     image: dazzar_bot
@@ -42,5 +50,7 @@ services:
     network_mode: "bridge"
     external_links:
       - dazzar_postgres
+      - dazzar_rabbitmq
     depends_on:
       - dazzar_postgres
+      - dazzar_rabbitmq

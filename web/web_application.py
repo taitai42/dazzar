@@ -2,6 +2,8 @@
 # Application Setup #
 #####################
 
+import pika
+
 from flask import Flask, render_template
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -18,6 +20,14 @@ def create_app():
     return app
 app = create_app()
 migrate = Migrate(app, db)
+
+
+connection = pika.BlockingConnection(pika.URLParameters('amqp://guest:guest@dazzar_rabbitmq:5672//'))
+channel = connection.channel()
+channel.queue_declare(queue='dazzar_jobs')
+channel.basic_publish(exchange='',
+                      routing_key='dazzar_jobs',
+                      body='Hello World!')
 
 oid = OpenID(app, store_factory=lambda: None)
 login_manager = LoginManager()

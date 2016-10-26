@@ -19,7 +19,8 @@ RUN pip3 install \
     Flask-SQLAlchemy \
     Flask-OpenID \
     Flask-Login \
-    Flask-Script
+    Flask-Script \
+    pika
 RUN pip3 install git+https://github.com/ValvePython/dota2
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar
