@@ -40,11 +40,33 @@ Other commands
 
 Some configuration files are cyphered using [transcrypt](https://github.com/elasticdog/transcrypt) and a secret key. However, you can have a peek at the structure of such files watching their `*.example` couterpardt. These files are `common/settings.cfg` and `docker/dazzar_postgres/conf.env`
 
-## Project structure
+## Details
 
-The project is composed of 4 big components:
+### Project structure
+
+    .
+    ├── bot                   # Files used inside the worker
+    ├── common                # Sources shared between the worker and the web app
+    ├── docker                # Docker files and compose
+    ├── migrations            # Database migrations
+    ├── web                   # Web sources
+    ├── LICENSE
+    ├── Makefile
+    └── README.md
+
+### Docker images
+
+The project is composed of 4 docker images:
 
 - `dazzar_postgres` - Postgres database used for persistence stuff, shared between the web part and the worker part.
 - `dazzar_rabbitmq` - A queue to send jobs from the web platform to the workers.
 - `dazzar_web` - Flask application managing the website.
 - `dazzar_bot` - Image managing background tasks: bot manager, steam bots, tasks...
+
+### Web
+
+The web project is a classic Flask application, rendering views using Jinja2 templating. The project is connected to a database to store all infos but also to a queue to send background jobs to workers.
+
+### Worker
+
+The bot worker is managing a pool of steam bots to process background task (analyse profiles, create games, report results...).
