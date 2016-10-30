@@ -26,7 +26,7 @@ db-upgrade: build
 	docker run --rm --name dazzar_upgrade --link dazzar_postgres -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db upgrade
 
 ###########
-# general #
+# General #
 ###########
 
 # stop all running dockers
@@ -51,7 +51,6 @@ web-start:
 # start bot
 bot-start:
 	docker-compose -f docker/docker-compose.yml up --build dazzar_bot
-
 
 # scripts
 SCRIPT?=make_admin -i 76561197961298382
