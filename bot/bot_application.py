@@ -6,24 +6,28 @@ from bot.dota_bot import DotaBotThread
 import common.constants as constants
 
 # Log
-logging.basicConfig(format='[%(asctime)s] %(levelname)s (%(threadName)-8s) %(name)s: %(message)s', level=logging.DEBUG)
-
-# Initialize thread pool
-bot1 = DotaBotThread()
-bot1.start()
+logging.basicConfig(format='[%(asctime)s] %(levelname)s (%(threadName)-8s) %(name)s: %(message)s', level=logging.INFO)
 
 
-def callback(ch, method, properties, body):
-    print(" [x] Received %r" % body)
+class DazzarWorkerManager:
+    """Master class for the woker part.
+    The manager is responsible of the different Dota bots.
+    """
 
-connection = pika.BlockingConnection(pika.URLParameters('amqp://guest:guest@dazzar_rabbitmq:5672//'))
-channel = connection.channel()
-channel.queue_declare(queue='dazzar_jobs')
-channel.basic_consume(callback,
-                      queue='hello',
-                      no_ack=True)
-channel.start_consuming()
+    def __init__(self):
+        # Initialize thread pool
+        self.bot1 = DotaBotThread()
+        self.bot1.start()
 
-# Thread sanity checks
-while True:
-    sleep(30)
+    def start(self):
+        """Entry point of the manager.
+
+        :return:
+        """
+        # Pool sanity check TODO
+        while True:
+            sleep(30)
+
+# Start if main script
+if __name__ == '__main__':
+    DazzarWorkerManager().start()

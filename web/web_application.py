@@ -10,6 +10,7 @@ from flask_login import LoginManager
 from flask_openid import OpenID
 
 from common.models import db
+from common.job_queue import QueueAdapter
 from common.configuration import load_config
 
 
@@ -21,13 +22,8 @@ def create_app():
 app = create_app()
 migrate = Migrate(app, db)
 
-
-connection = pika.BlockingConnection(pika.URLParameters('amqp://guest:guest@dazzar_rabbitmq:5672//'))
-channel = connection.channel()
-channel.queue_declare(queue='dazzar_jobs')
-channel.basic_publish(exchange='',
-                      routing_key='dazzar_jobs',
-                      body='Hello World!')
+queue = QueueAdapter()
+queue.produce('Salut mec.')
 
 oid = OpenID(app, store_factory=lambda: None)
 login_manager = LoginManager()

@@ -7,7 +7,6 @@ RUN apt-get update && apt-get -y upgrade
 RUN apt-get -y install \
     python3-pip \
     libpq-dev
-
 RUN pip3 install \
     tornado \
     psycopg2 \

@@ -5,24 +5,24 @@ ENV LANG C.UTF-8
 
 RUN apt-get update && apt-get -y upgrade
 RUN apt-get -y install \
-    git-core \
     python3-pip \
-    libpq-dev \
-    libffi-dev
-
+    libpq-dev
 RUN pip3 install \
-    psycopg2 \
-    SQLAlchemy \
     tornado \
+    psycopg2 \
     Flask \
     Flask-Migrate \
     Flask-SQLAlchemy \
+    SQLAlchemy \
     Flask-OpenID \
     Flask-Login \
     Flask-Script \
     pika
-RUN pip3 install git+https://github.com/ValvePython/dota2
-
 ENV PYTHONPATH $PYTHONPATH:/dazzar
+
+RUN apt-get -y install \
+    libffi-dev \
+    git-core
+RUN pip3 install git+https://github.com/ValvePython/dota2
 
 COPY . /dazzar/
