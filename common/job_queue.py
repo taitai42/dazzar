@@ -1,5 +1,6 @@
 import pika
 from threading import Thread
+from enum import IntEnum
 
 
 class QueueAdapter:
@@ -34,3 +35,24 @@ class QueueAdapter:
     def consume_forever(self, consumer):
         self.consume_thread = Thread(target=self.consume, args=[consumer])
         self.consume_thread.start()
+
+
+class JobType(IntEnum):
+    """Possible job types to process by steam bots.
+    """
+    ScanProfile = 0
+    CreateGame = 1
+
+
+class Job:
+    """The job class.
+
+    Attributes
+        type - The job type from JobType enum
+        steam_id - steam_id of a user if necessary
+        game_id - game_id of a game if necessary
+    """
+    def __init__(self, job_type=JobType.ScanProfile, steam_id=0, game_id=0):
+        self.type = job_type
+        self.steam_id = steam_id
+        self.game_id = game_id

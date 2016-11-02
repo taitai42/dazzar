@@ -55,7 +55,29 @@
             <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='play_vip', give=True) }}">Donner la permission de jouer</a>
             {% endif %}
         {% endif %}
-
     </ul>
+
+    {% if current_user.id == user.id %}
+    <p>
+    Informations récupérées avec le scan du compte dota. <a href="{{ url_for('user_blueprint.user_scan') }}">Cliquez-ici</a> pour lancer un nouveau scan.<br />
+    <ul>
+        <li>Dernier scan:
+            {% if current_user.last_scan is none %}
+            Jamais
+            {% else %}
+            {{ current_user.last_scan}}
+            {% endif %}
+        </li>
+        <li>Dernier Solo MMR scanné :
+            {% if current_user.solo_mmr is none %}
+            Inconnu
+            {% else %}
+            {{ current_user.solo_mmr }}
+            {% endif %}
+        </li>
+    </ul>
+    </p>
+    {% endif %}
+
 </div>
 {% endblock %}

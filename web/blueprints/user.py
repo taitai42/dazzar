@@ -134,9 +134,9 @@ def make_blueprint():
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 
-    @user_blueprint.route('/user/check_mmr')
+    @user_blueprint.route('/user/scan')
     @login_required
-    def user_check_mmr():
+    def user_scan():
         """Queue a job to check the solo MMR of the selected user.
         """
         # TODO CHANGE
@@ -147,6 +147,6 @@ def make_blueprint():
         # request.status = constants.JOB_STEAM_STATUS_TODO
         # db.session.commit()
 
-        return redirect(url_for('ladder_blueprint.ladder_play'))
+        return redirect(url_for('user_blueprint.user', steam_id=current_user.id))
 
     return user_blueprint
