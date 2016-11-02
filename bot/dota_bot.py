@@ -9,7 +9,7 @@ from steam.enums import EResult
 from dota2 import Dota2Client
 
 from web.web_application import create_app
-from common.models import db, User, MMRChecker
+from common.models import db, User
 from common.job_queue import QueueAdapter
 import common.constants as constants
 
@@ -61,7 +61,7 @@ class DotaBotThread(Thread):
         def fetch_profile_card():
             logging.info('toto')
             with app.app_context():
-                request = MMRChecker.query.first()
+                request = None
                 if request is None:
                     return
                 user = SteamID(request.id)
@@ -82,10 +82,9 @@ class DotaBotThread(Thread):
                     pass
                 else:
                     user = SteamID(account_id)
-                    request = MMRChecker.query.filter_by(id=str(user.as_64)).first()
+                    request = None
                     if request is None:
                         return
-                    request.status = constants.JOB_STEAM_STATUS_SOLO_MMR_REFUSED
                     db.session.commit()
 
         client.connect()

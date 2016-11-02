@@ -1,29 +1,30 @@
 import logging
 from time import sleep
-import pika
 
 from bot.dota_bot import DotaBotThread
-import common.constants as constants
 
 # Log
 logging.basicConfig(format='[%(asctime)s] %(levelname)s (%(threadName)-8s) %(name)s: %(message)s', level=logging.INFO)
 
 
 class DazzarWorkerManager:
-    """Master class for the woker part.
+    """Master class for the worker part.
     The manager is responsible of the different Dota bots.
     """
 
     def __init__(self):
-        # Initialize thread pool
-        self.bot1 = DotaBotThread()
-        self.bot1.start()
+        # Init thread pool
+        self.bots = []
+        self.bots.append(DotaBotThread())
 
     def start(self):
         """Entry point of the manager.
 
         :return:
         """
+        for bot in self.bots:
+            bot.start()
+
         # Pool sanity check TODO
         while True:
             sleep(30)

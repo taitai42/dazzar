@@ -10,17 +10,22 @@ db = SQLAlchemy()
 
 
 permissions = db.Table('permissions',
-                       db.Column('permission_id', db.Integer, db.ForeignKey('user_permission.id')),
-                       db.Column('user_id', db.String(40), db.ForeignKey('user.id')))
+                       db.Column('permission_id', db.Integer(), db.ForeignKey('user_permission.id')),
+                       db.Column('user_id', db.BigInteger(), db.ForeignKey('user.id')))
 
 
 class User(db.Model):
     """A user representation in the database.
 
     Attributes:
-        id - unique id, steam ID
+        id - unique id, steam ID 64 bits
         nickname - unique nickname of the user, None at the first logging
         permissions - permissions of the current user
+
+        current_match - if playing, this is the id of the current match
+
+        last_scan - last time the steam profile was scanned for info
+        solo_mmr - player solo mmr found after scan
     Methods:
         has_permission - test if user has a specific permission
         give_permission - give a specific permission to the user
@@ -28,11 +33,22 @@ class User(db.Model):
     """
     __tablename__ = 'user'
 
-    id = db.Column(db.String(40), primary_key=True)
+    id = db.Column(db.BigInteger(), primary_key=True)
     nickname = db.Column(db.String(20), nullable=True, index=True)
     permissions = db.relationship('UserPermission', secondary=permissions, lazy='dynamic',
                                   backref=db.backref('users', lazy='dynamic'))
-    current_match = db.Column(db.Integer, db.ForeignKey('match_vip.id'), nullable=True)
+
+    current_match = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=True)
+
+    last_scan = db.Column(db.DateTime, nullable=True)
+    solo_mmr = db.Column(db.Integer(), nullable=True)
+
+    def __init__(self, steam_id):
+        self.id = steam_id
+        self.nickname = None
+        self.current_match = None
+        self.last_scan = None
+        self.solo_mmr = None
 
     def is_authenticated(self):
         return True
@@ -48,7 +64,7 @@ class User(db.Model):
 
     def has_permission(self, name):
         permission = UserPermission.query.filter_by(name=name).first()
-        if not permission or not permission in self.permissions:
+        if not permission or permission not in self.permissions:
             return False
         return True
 
@@ -64,13 +80,12 @@ class User(db.Model):
 
     @staticmethod
     def get_or_create(steam_id):
-        rv = User.query.filter_by(id=steam_id).first()
-        if rv is None:
-            rv = User()
-            rv.id = steam_id
-            db.session.add(rv)
+        user = User.query.filter_by(id=steam_id).first()
+        if user is None:
+            user = User(steam_id)
+            db.session.add(user)
             db.session.commit()
-        return rv
+        return user
 
 
 class UserPermission(db.Model):
@@ -86,40 +101,36 @@ class UserPermission(db.Model):
     name = db.Column(db.String(20))
 
 
-class QueueVIP(db.Model):
+class QueuedPlayer(db.Model):
     """Users currently queued for a game.
 
     Attributes:
         id - user steam id
+        queue_name - queue label the player is queued, cf constants
         added - timestamp of user queue event
     """
-    __tablename__ = 'queue_vip'
+    __tablename__ = 'queued_player'
 
-    id = db.Column(db.String(40), db.ForeignKey('user.id'), primary_key=True)
+    id = db.Column(db.BigInteger(), db.ForeignKey('user.id'), primary_key=True)
+    queue_name = db.Column(db.String(20), nullable=False)
     added = db.Column(db.DateTime, index=True, nullable=False)
 
-    def __init__(self, id):
+    def __init__(self, id, queue_name):
         self.id = id
+        self.queue_name = queue_name
         self.added = datetime.now()
 
 
-players = db.Table('players',
-    db.Column('user_id', db.String(40), db.ForeignKey('user.id')),
-    db.Column('match_vip_id', db.Integer, db.ForeignKey('match_vip.id'))
-)
-
-
-class MatchVIP(db.Model):
+class Match(db.Model):
     """Table of all the matches in the league.
 
     Attributes:
         id - unique match ID
         created - timestamp of the match creation event
-        status - current status of the match, of type MatchStatus
+        status - current status of the match, cf constants
         password - password of the Dota lobby
     """
-
-    __tablename__= 'match_vip'
+    __tablename__= 'match'
 
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.Integer, index=True, nullable=False)
@@ -135,20 +146,3 @@ class MatchVIP(db.Model):
             self.password += random.choice(string.ascii_lowercase + string.digits)
         for player in User.query.filter(User.id.in_(players)).all():
             self.players.append(player)
-
-
-class MMRChecker(db.Model):
-    """Table of mmr check jobs to do related to users.
-
-    Attributes:
-        user_id - user to run the job on
-        status - Status of the request
-    """
-    __tablename__= 'mmr_checker'
-
-    id = db.Column(db.String(40), db.ForeignKey('user.id'), primary_key=True)
-    status = db.Column(db.Integer, index=True, nullable=False, default=constants.JOB_STEAM_STATUS_TODO)
-
-    def __init__(self, steam_id):
-        self.id = steam_id
-        self.status = constants.JOB_STEAM_STATUS_TODO

@@ -3,7 +3,7 @@ import re, logging
 from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
-from common.models import db, User, QueueVIP, MatchVIP, MMRChecker
+from common.models import db, User, QueuedPlayer, Match
 import common.constants as constants
 
 
@@ -18,17 +18,18 @@ def make_blueprint():
         Display the queue and enter/quit if user can play."""
         in_queue = False
         current_queue = []
-        solo_mmr_request = None
 
         if current_user.has_permission(constants.PERMISSION_PLAY_VIP):
-            if QueueVIP.query.filter_by(id=current_user.id).first() is not None:
+            if QueuedPlayer.query.filter_by(id=current_user.id, queue_name=constants.QUEUE_NAME_VIP).first() is not None:
                 in_queue = True
-        else:
-            solo_mmr_request = MMRChecker.query.filter_by(id=current_user.id).first()
-        for user in QueueVIP.query.order_by(QueueVIP.added).limit(10).from_self().join(User).add_columns(User.id, User.nickname).all():
+
+        for user in QueuedPlayer.query\
+                .filter_by(queue_name=constants.QUEUE_NAME_VIP)\
+                .order_by(QueuedPlayer.added).limit(10)\
+                .from_self().join(User).add_columns(User.id, User.nickname).all():
             current_queue.append(user)
-        return render_template('ladder_play.html', current_queue=current_queue, in_queue=in_queue,
-                               solo_mmr_request=solo_mmr_request)
+
+        return render_template('ladder_play.html', current_queue=current_queue, in_queue=in_queue)
 
     @ladder_blueprint.route('/ladder/scoreboard')
     def ladder_scoreboard():
@@ -48,8 +49,8 @@ def make_blueprint():
         length = 20
         start = int(request.args.get('start', '0'))
 
-        query = MatchVIP.query \
-            .order_by(MatchVIP.created.desc())
+        query = Match.query \
+            .order_by(Match.created.desc())
 
         count = query.count()
 
@@ -74,7 +75,7 @@ def make_blueprint():
         Parameters
             match_id - match to return the detailed page of
         """
-        match_requested = MatchVIP.query.filter_by(id=match_id).first_or_404()
+        match_requested = Match.query.filter_by(id=match_id).first_or_404()
         return render_template('ladder_match.html', match=match_requested)
 
     @ladder_blueprint.route('/queue/<string:add>')
@@ -87,11 +88,12 @@ def make_blueprint():
                 and current_user.has_permission(constants.PERMISSION_PLAY_VIP)\
                 and current_user.current_match is None:
             if add:
-                if QueueVIP.query.filter_by(id=current_user.id).first() is None:
+                if QueuedPlayer.query.filter_by(queue_name=constants.QUEUE_NAME_VIP, id=current_user.id).first() is None:
                     # Add if less than 9 players, create a game otherwise
-                    query = QueueVIP.query.order_by(QueueVIP.added).limit(9)
+                    query = QueuedPlayer.query.filter_by(queue_name=constants.QUEUE_NAME_VIP)\
+                        .order_by(QueuedPlayer.added).limit(9)
                     if query.count() < 9:
-                        new_queue = QueueVIP(current_user.id)
+                        new_queue = QueuedPlayer(current_user.id, constants.QUEUE_NAME_VIP)
                         db.session().add(new_queue)
                         db.session().commit()
                     else:
@@ -99,7 +101,7 @@ def make_blueprint():
                         for player in query.all():
                             players.append(player.id)
                             db.session().delete(player)
-                        new_match = MatchVIP(players)
+                        new_match = Match(players)
                         db.session().add(new_match)
                         db.session().commit()
                         for user in new_match.players:
@@ -107,7 +109,7 @@ def make_blueprint():
                         db.session.commit()
                         return redirect(url_for('ladder_blueprint.ladder_play'))
             else:
-                remove_queue = QueueVIP.query.filter_by(id=current_user.id).first()
+                remove_queue = QueuedPlayer.query.filter_by(id=current_user.id, queue_name=constants.QUEUE_NAME_VIP).first()
                 if remove_queue is not None:
                     db.session().delete(remove_queue)
                     db.session().commit()

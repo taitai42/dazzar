@@ -51,7 +51,7 @@
         });
 
         $('#users tbody').on( 'click', 'tr', function () {
-            window.location = {{ url_for('user_blueprint.user', steam_id='') }} + $(this).children()[0].textContent;
+            window.location = '{{ url_for('user_blueprint.user', steam_id=0) }}' + $(this).children()[0].textContent;
         });
     } );
 </script>

@@ -2,8 +2,6 @@
 # Application Setup #
 #####################
 
-import pika
-
 from flask import Flask, render_template
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -23,7 +21,6 @@ app = create_app()
 migrate = Migrate(app, db)
 
 queue = QueueAdapter()
-queue.produce('Salut mec.')
 
 oid = OpenID(app, store_factory=lambda: None)
 login_manager = LoginManager()

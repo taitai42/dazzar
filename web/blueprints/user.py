@@ -1,7 +1,9 @@
-from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template, jsonify
+import logging
+
+from flask import Blueprint, request, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
-from common.models import db, User, UserPermission, MMRChecker
+from common.models import db, User
 from common.helpers import validate_nickname
 import common.constants as constants
 
@@ -41,7 +43,7 @@ def make_blueprint():
 
         abort(404)
 
-    @user_blueprint.route('/nickname/delete/<string:steam_id>')
+    @user_blueprint.route('/nickname/delete/<int:steam_id>')
     @login_required
     def nickname_delete(steam_id):
         """Delete user nickname if admin.
@@ -50,6 +52,7 @@ def make_blueprint():
         Parameters:
             steam_id - user concerned
         """
+        steam_id = int(steam_id)
         target_user = User.query.filter_by(id=steam_id).first()
         if target_user is not None \
             and current_user.is_authenticated \
@@ -90,7 +93,7 @@ def make_blueprint():
             permissions += "A " if user.has_permission(constants.PERMISSION_ADMIN) else "- "
             permissions += "V " if user.has_permission(constants.PERMISSION_VOUCH_VIP) else "- "
             permissions += "J " if user.has_permission(constants.PERMISSION_PLAY_VIP) else "- "
-            data.append([user.id, user.nickname, permissions])
+            data.append([str(user.id), user.nickname, permissions])
         results = {
             "draw": draw,
             "recordsTotal": count,
@@ -99,7 +102,7 @@ def make_blueprint():
         }
         return jsonify(results)
 
-    @user_blueprint.route('/user/<string:steam_id>')
+    @user_blueprint.route('/user/<int:steam_id>')
     def user(steam_id):
         """Page to give details of a user.
 
@@ -109,7 +112,7 @@ def make_blueprint():
         user_requested = User.query.filter_by(id=steam_id).first_or_404()
         return render_template('user.html', user=user_requested)
 
-    @user_blueprint.route('/permission/<string:steam_id>/<string:permission>/<string:give>')
+    @user_blueprint.route('/permission/<int:steam_id>/<string:permission>/<string:give>')
     @login_required
     def user_permission(steam_id, permission, give):
         """Modify user permission according to parameters.
@@ -136,12 +139,13 @@ def make_blueprint():
     def user_check_mmr():
         """Queue a job to check the solo MMR of the selected user.
         """
-        request = MMRChecker.query.filter_by(id=current_user.id).first()
-        if request is None:
-            request = MMRChecker(current_user.id)
-            db.session.add(request)
-        request.status = constants.JOB_STEAM_STATUS_TODO
-        db.session.commit()
+        # TODO CHANGE
+        # request = MMRChecker.query.filter_by(id=current_user.id).first()
+        # if request is None:
+        #     request = MMRChecker(current_user.id)
+        #     db.session.add(request)
+        # request.status = constants.JOB_STEAM_STATUS_TODO
+        # db.session.commit()
 
         return redirect(url_for('ladder_blueprint.ladder_play'))
 
