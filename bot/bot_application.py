@@ -2,9 +2,10 @@ import logging
 from time import sleep
 
 from bot.dota_bot import DotaBotThread
+from web.web_application import create_app
 
 # Log
-logging.basicConfig(format='[%(asctime)s] %(levelname)s (%(threadName)-8s) %(name)s: %(message)s', level=logging.INFO)
+logging.basicConfig(format='[%(asctime)s] %(levelname)s %(threadName)s %(message)s', level=logging.INFO)
 
 
 class DazzarWorkerManager:
@@ -13,9 +14,13 @@ class DazzarWorkerManager:
     """
 
     def __init__(self):
+        self.app = create_app()
+
         # Init thread pool
         self.bots = []
-        self.bots.append(DotaBotThread())
+        for i in range(0, self.app.config['STEAM_BOT_COUNT']):
+            self.bots.append(DotaBotThread(self.app.config['STEAM_BOT{0}_LOGIN'.format(i)],
+                                           self.app.config['STEAM_BOT{0}_PASSWORD'.format(i)]))
 
     def start(self):
         """Entry point of the manager.

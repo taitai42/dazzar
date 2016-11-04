@@ -1,9 +1,8 @@
 import pika
-from threading import Thread
 from enum import IntEnum
 
 
-class QueueAdapter:
+class QueueAdapter():
     """Adapter to interact with the dazzar job queue.
 
     Attributes
@@ -20,7 +19,11 @@ class QueueAdapter:
         self.channel.queue_declare(queue='dazzar_jobs', durable=True)
         self.consume_thread = None
 
+        self.bot = None
+        self.method = None
+
     def produce(self, message):
+        self.channel = self.connection.channel()
         self.channel.basic_publish(exchange='',
                                    routing_key='dazzar_jobs',
                                    body=message,
@@ -28,13 +31,16 @@ class QueueAdapter:
                                        delivery_mode=2,  # make message persistent
                                    ))
 
-    def consume(self, consumer):
-        self.channel.basic_consume(consumer, queue='dazzar_jobs')
-        self.channel.start_consuming()
+    def consume(self):
+        method_frame, header_frame, body = self.channel.basic_get('dazzar_jobs')
+        if method_frame:
+            self.method = method_frame
+            return body
+        else:
+            return None
 
-    def consume_forever(self, consumer):
-        self.consume_thread = Thread(target=self.consume, args=[consumer])
-        self.consume_thread.start()
+    def ack_last(self):
+        self.channel.basic_ack(delivery_tag=self.method.delivery_tag)
 
 
 class JobType(IntEnum):

@@ -23,6 +23,8 @@ ENV PYTHONPATH $PYTHONPATH:/dazzar
 RUN apt-get -y install \
     libffi-dev \
     git-core
-RUN pip3 install git+https://github.com/ValvePython/dota2
+RUN pip3 install \
+    git+https://github.com/ValvePython/steam#egg=steam[client] \
+    git+https://github.com/ValvePython/dota2
 
 COPY . /dazzar/

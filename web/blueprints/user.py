@@ -1,9 +1,11 @@
 import logging
+import pickle
 
 from flask import Blueprint, request, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
 from common.models import db, User
+from common.job_queue import QueueAdapter, Job, JobType
 from common.helpers import validate_nickname
 import common.constants as constants
 
@@ -139,14 +141,8 @@ def make_blueprint():
     def user_scan():
         """Queue a job to check the solo MMR of the selected user.
         """
-        # TODO CHANGE
-        # request = MMRChecker.query.filter_by(id=current_user.id).first()
-        # if request is None:
-        #     request = MMRChecker(current_user.id)
-        #     db.session.add(request)
-        # request.status = constants.JOB_STEAM_STATUS_TODO
-        # db.session.commit()
-
+        job_queue = QueueAdapter()
+        job_queue.produce(pickle.dumps(Job(JobType.ScanProfile, steam_id=current_user.id)))
         return redirect(url_for('user_blueprint.user', steam_id=current_user.id))
 
     return user_blueprint

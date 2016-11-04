@@ -20,8 +20,6 @@ def create_app():
 app = create_app()
 migrate = Migrate(app, db)
 
-queue = QueueAdapter()
-
 oid = OpenID(app, store_factory=lambda: None)
 login_manager = LoginManager()
 login_manager.init_app(app)
