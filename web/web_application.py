@@ -30,14 +30,16 @@ login_manager.login_view = 'login_blueprint.login'
 #######################
 
 
-import web.blueprints.login as login_blueprint
-import web.blueprints.user as user_blueprint
-import web.blueprints.ladder as ladder_blueprint
+import web.blueprints.login.login as login_blueprint
+import web.blueprints.user.user as user_blueprint
+import web.blueprints.ladder.ladder as ladder_blueprint
+import web.blueprints.mix.mix as mix_blueprint
 
 
 app.register_blueprint(login_blueprint.make_blueprint(oid, login_manager))
 app.register_blueprint(user_blueprint.make_blueprint())
 app.register_blueprint(ladder_blueprint.make_blueprint())
+app.register_blueprint(mix_blueprint.make_blueprint())
 
 ##########
 # Routes #

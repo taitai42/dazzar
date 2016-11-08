@@ -1,10 +1,11 @@
 import logging
 import pickle
+from datetime import datetime, timedelta
 
-from flask import Blueprint, request, url_for, abort, redirect, render_template, jsonify
+from flask import Blueprint, request, current_app, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
-from common.models import db, User
+from common.models import db, User, ProfileScanInfo
 from common.job_queue import QueueAdapter, Job, JobType
 from common.helpers import validate_nickname
 import common.constants as constants
@@ -12,7 +13,7 @@ import common.constants as constants
 
 def make_blueprint():
 
-    user_blueprint = Blueprint('user_blueprint', __name__)
+    user_blueprint = Blueprint('user_blueprint', __name__, template_folder='templates')
 
     @user_blueprint.route('/nickname', methods=['GET', 'POST'])
     @login_required
@@ -27,22 +28,21 @@ def make_blueprint():
             return redirect(url_for('index'))
 
         if request.method == 'GET':
-            return render_template('nickname.html')
+            return render_template('user_nickname.html')
         elif request.method == 'POST':
             posted_nickname = request.form.get('nickname')
 
             error = validate_nickname(posted_nickname)
             if error is not None:
-                return render_template('nickname.html', error=error)
+                return render_template('user_nickname.html', error=error)
 
             session = db.session()
             if session.query(User).filter_by(nickname=posted_nickname).first() is not None:
-                return render_template('nickname.html', error='Le pseudo est déjà utilisé.')
+                return render_template('user_nickname.html', error='Le pseudo est déjà utilisé.')
             user = session.query(User).filter_by(id=current_user.id).first()
             user.nickname = posted_nickname
             db.session().commit()
             return redirect(url_for('index'))
-
         abort(404)
 
     @user_blueprint.route('/nickname/delete/<int:steam_id>')
@@ -66,7 +66,7 @@ def make_blueprint():
     @user_blueprint.route('/users')
     def users():
         """Page to list all users of the website"""
-        return render_template('users.html')
+        return render_template('user_list.html')
 
     @user_blueprint.route('/api/users')
     def api_users():
@@ -112,7 +112,13 @@ def make_blueprint():
             steam_id - user to return the detailed page of
         """
         user_requested = User.query.filter_by(id=steam_id).first_or_404()
-        return render_template('user.html', user=user_requested)
+        if current_user.id == user_requested.id and \
+            (current_user.profile_scan_info is None or
+            datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(minutes=5)):
+            scan_possible = True
+        else:
+            scan_possible = False
+        return render_template('user_details.html', user=user_requested, scan_possible=scan_possible)
 
     @user_blueprint.route('/permission/<int:steam_id>/<string:permission>/<string:give>')
     @login_required
@@ -141,8 +147,17 @@ def make_blueprint():
     def user_scan():
         """Queue a job to check the solo MMR of the selected user.
         """
-        job_queue = QueueAdapter()
+        if current_user.profile_scan_info is None:
+            current_user.profile_scan_info = ProfileScanInfo(current_user)
+        elif datetime.utcnow() - current_user.profile_scan_info.last_scan_request < timedelta(minutes=5):
+            return redirect(url_for('user_blueprint.user', steam_id=current_user.id))
+
+        current_user.profile_scan_info.last_scan_request = datetime.utcnow()
+        db.session.commit()
+
+        job_queue = QueueAdapter(current_app.config['RABBITMQ_LOGIN'], current_app.config['RABBITMQ_PASSWORD'])
         job_queue.produce(pickle.dumps(Job(JobType.ScanProfile, steam_id=current_user.id)))
+
         return redirect(url_for('user_blueprint.user', steam_id=current_user.id))
 
     return user_blueprint

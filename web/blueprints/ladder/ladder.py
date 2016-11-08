@@ -9,7 +9,7 @@ import common.constants as constants
 
 def make_blueprint():
 
-    ladder_blueprint = Blueprint('ladder_blueprint', __name__)
+    ladder_blueprint = Blueprint('ladder_blueprint', __name__, template_folder='templates')
 
     @ladder_blueprint.route('/ladder/play')
     @login_required

@@ -1,3 +1,4 @@
 #pattern  filter=crypt diff=crypt
 docker/dazzar_postgres/conf.env filter=crypt diff=crypt
+docker/dazzar_rabbitmq/conf.env filter=crypt diff=crypt
 common/settings.cfg filter=crypt diff=crypt

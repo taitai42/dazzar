@@ -79,7 +79,7 @@ class DotaBotThread(EventEmitter, Thread):
 
         with self.app.app_context():
             user = User.query.filter_by(id=self.current_job.steam_id).first()
-            user.last_scan = datetime.utcnow()
+            user.profile_scan_info.last_scan = datetime.utcnow()
 
             if solo_mmr is not None:
                 user.solo_mmr = solo_mmr
@@ -99,7 +99,7 @@ class DotaBotThread(EventEmitter, Thread):
         self.client = SteamClient()
         self.dota = Dota2Client(self.client)
         self.app = create_app()
-        self.queue = QueueAdapter()
+        self.queue = QueueAdapter(self.app.config['RABBITMQ_LOGIN'], self.app.config['RABBITMQ_PASSWORD'])
 
         self.client.on('connected', self.login_bot)
         self.client.on('logged_on', self.start_dota)

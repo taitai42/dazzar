@@ -5,7 +5,7 @@
 # start db
 db-start:
 	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_postgres
-	docker-compose -p dazzar -f docker/docker-compose.yml up -d dazzar_rabbitmq
+	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_rabbitmq
 
 # stop db
 db-stop:
@@ -44,12 +44,30 @@ all-stop:
 all-start:
 	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build
 
-# start web
+# start web prod
 web-start:
+	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_web
+
+# start web prod
+web-stop:
+	-docker stop dazzar_web
+	-docker rm dazzar_web
+
+# start web dev
+web-run:
 	docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_web
 
-# start bot
+# start bot prod
 bot-start:
+	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_bot
+
+# stop bot prod
+bot-stop:
+	-docker stop dazzar_bot
+	-docker rm dazzar_bot
+
+# start bot dev
+bot-run:
 	docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_bot
 
 # scripts
@@ -60,3 +78,8 @@ script:
 # build
 build:
 	docker-compose -p dazzar -f docker/docker-compose.yml build
+
+# clean docker images
+clean:
+	docker rm `docker ps -aq`
+	docker rmi `docker images -aq`

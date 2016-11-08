@@ -32,8 +32,12 @@ Database commands
 
 Other commands
 
-- `make web-start` - start the web image only, attached (to debug).
-- `make bot-start` - start the bot image only, attached (to debug).
+- `make web-start` - start the web image only, detached (prod).
+- `make web-stop` - stop the web image only.
+- `make web-run` - start the web image only, attached (debug).
+- `make bot-start` - start the bot image only, attached (prod).
+- `make bot-stop` - stop the bot image only.
+- `make bot-run` - start the bot image only, attached (debug).
 - `make script SCRIPT=SCRIPT_TO_RUN` - run the `SCRIPT_TO_RUN` defined in the `common/scripts.py` file.
 
 ## About configurations

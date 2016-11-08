@@ -37,10 +37,13 @@ class User(db.Model):
     nickname = db.Column(db.String(20), nullable=True, index=True)
     permissions = db.relationship('UserPermission', secondary=permissions, lazy='dynamic',
                                   backref=db.backref('users', lazy='dynamic'))
+    user_mix_details = db.relationship("UserMixDetail", uselist=False, lazy='joined',
+                                       backref=db.backref('user', uselist=False, lazy='joined'))
 
     current_match = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=True)
 
-    last_scan = db.Column(db.DateTime, nullable=True)
+    profile_scan_info = db.relationship("ProfileScanInfo", uselist=False, lazy='joined',
+                                        backref=db.backref('user', uselist=False, lazy='joined'))
     solo_mmr = db.Column(db.Integer(), nullable=True)
 
     def __init__(self, steam_id):
@@ -88,6 +91,23 @@ class User(db.Model):
         return user
 
 
+class ProfileScanInfo(db.Model):
+    """Informations about the last profile scan done.
+
+    Attributes:
+        id - user scan info
+        last_scan_request - last time the user pressed the scan button
+        last_scan - last time a bot scanned the profile
+    """
+    __tablename__ = 'profile_scan_info'
+
+    id = db.Column(db.BigInteger(), db.ForeignKey('user.id'), primary_key=True)
+    last_scan_request = db.Column(db.DateTime, nullable=False)
+    last_scan = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, user):
+        self.id = user.id
+
 class UserPermission(db.Model):
     """A possible permission for a user.
 
@@ -99,6 +119,22 @@ class UserPermission(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20))
+
+
+class UserMixDetail(db.Model):
+    """A user mix description when a user is looking for mates.
+
+    Attributes
+        id - user id of the request
+    """
+    __tablename__ = 'user_mix_details'
+
+    id = db.Column(db.BigInteger(), db.ForeignKey('user.id'), primary_key=True)
+    refresh_date = db.Column(db.DateTime, index=True, nullable=False)
+    enabled = db.Column(db.Boolean, nullable=False, default=False)
+    title = db.Column(db.String(20), nullable=True)
+    level = db.Column(db.String(20), nullable=True)
+    description = db.Column(db.Text, nullable=True)
 
 
 class QueuedPlayer(db.Model):

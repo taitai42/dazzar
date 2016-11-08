@@ -8,7 +8,7 @@ from common.models import User
 
 def make_blueprint(oid, login_manager):
 
-    login_blueprint = Blueprint('login_blueprint', __name__)
+    login_blueprint = Blueprint('login_blueprint', __name__, template_folder='templates')
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -19,7 +19,7 @@ def make_blueprint(oid, login_manager):
     @login_blueprint.route('/login')
     def login():
         """Login page that invite to login with steam."""
-        return render_template('login.html')
+        return render_template('login_login.html')
 
     @login_blueprint.route('/logout')
     @login_required

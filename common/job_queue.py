@@ -1,6 +1,6 @@
 import pika
+import logging
 from enum import IntEnum
-
 
 class QueueAdapter():
     """Adapter to interact with the dazzar job queue.
@@ -12,8 +12,10 @@ class QueueAdapter():
         consume_thread
     """
 
-    def __init__(self):
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='dazzar_rabbitmq'))
+    def __init__(self, username, password):
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='dazzar_rabbitmq',
+                                                                            credentials=pika.PlainCredentials(username,
+                                                                                                              password)))
         self.channel = self.connection.channel()
         self.channel.basic_qos(prefetch_count=1)
         self.channel.queue_declare(queue='dazzar_jobs', durable=True)

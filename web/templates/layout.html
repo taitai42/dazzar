@@ -46,7 +46,7 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_authenticated %}
-                    <li><a href="#">
+                    <li><a href="{{ url_for('user_blueprint.user', steam_id=current_user.id) }}">
                         {% if current_user.nickname is none %}
                             {{ current_user.id }}
                         {% else %}
@@ -68,9 +68,10 @@
             <ul class="nav nav-sidebar">
                 <li class="active"><a href="{{ url_for('index') }}">Index</a></li>
                 <li><a href="{{ url_for('user_blueprint.users') }}">Utilisateurs</a></li>
+                <li><a href="{{ url_for('mix_blueprint.mix_users') }}">Mixeur</a></li>
             </ul><br />
             <ul class="nav nav-sidebar">
-                <li><a href="{{ url_for('ladder_blueprint.ladder_scoreboard') }}">Score du ladder</a></li>
+                <!--li><a href="{{ url_for('ladder_blueprint.ladder_scoreboard') }}">Score du ladder</a></li-->
                 <li><a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Matchs</a></li>
                 <li><a href="{{ url_for('ladder_blueprint.ladder_play') }}">Jouer</a></li>
             </ul>
