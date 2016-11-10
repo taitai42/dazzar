@@ -18,18 +18,34 @@ def make_blueprint():
         Display the queue and enter/quit if user can play."""
         in_queue = False
         current_queue = []
+        is_open = current_app.config['VIP_LADDER_OPEN']
 
-        if current_user.has_permission(constants.PERMISSION_PLAY_VIP):
-            if QueuedPlayer.query.filter_by(id=current_user.id, queue_name=constants.QUEUE_NAME_VIP).first() is not None:
-                in_queue = True
+        if is_open:
+            if current_user.has_permission(constants.PERMISSION_PLAY_VIP):
+                if QueuedPlayer.query.filter_by(id=current_user.id, queue_name=constants.QUEUE_NAME_VIP).first() is not None:
+                    in_queue = True
 
-        for user in QueuedPlayer.query\
-                .filter_by(queue_name=constants.QUEUE_NAME_VIP)\
-                .order_by(QueuedPlayer.added).limit(10)\
-                .from_self().join(User).add_columns(User.id, User.nickname).all():
-            current_queue.append(user)
+            for user in QueuedPlayer.query\
+                    .filter_by(queue_name=constants.QUEUE_NAME_VIP)\
+                    .order_by(QueuedPlayer.added).limit(10)\
+                    .from_self().join(User).add_columns(User.id, User.nickname).all():
+                current_queue.append(user)
 
-        return render_template('ladder_play.html', current_queue=current_queue, in_queue=in_queue)
+        return render_template('ladder_play.html', is_open=is_open, current_queue=current_queue, in_queue=in_queue)
+
+    @ladder_blueprint.route('/ladder/open')
+    @login_required
+    def ladder_open():
+        """Open or close the ladder."""
+        if current_user.has_permission('admin'):
+            current_app.config['VIP_LADDER_OPEN'] = not current_app.config['VIP_LADDER_OPEN']
+            for user in QueuedPlayer.query\
+                    .filter_by(queue_name=constants.QUEUE_NAME_VIP)\
+                    .all():
+                db.session.delete(user)
+            db.session.commit()
+
+        return redirect(url_for('ladder_blueprint.ladder_play'))
 
     @ladder_blueprint.route('/ladder/scoreboard')
     def ladder_scoreboard():

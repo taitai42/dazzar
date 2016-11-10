@@ -3,26 +3,37 @@
 <h1 class="page-header">Jouer sur le Ladder</h1>
 
 <div class="container">
-    {% if not current_user.has_permission('play_vip') %}
-        Vous devez être vouched pour jouer sur le ladder VIP.<br />
-    {% else %}
-        {% if current_user.current_match is none %}
-            {% if in_queue %}
-                <a href="{{ url_for('ladder_blueprint.queue', add='False') }}">Sortir de la Queue</a>
-            {% else %}
-                <a href="{{ url_for('ladder_blueprint.queue', add='True') }}">Rentrez Dans la Queue</a>
-            {% endif %}
-        {% else %}
-            Vous êtes actuellement dans <a href="{{ url_for('ladder_blueprint.match', match_id=current_user.current_match) }}">une partie</a>, vous devez attendre que cette dernière soit terminée pour queue.
+    {% if is_open %}
+        {% if current_user.has_permission('admin') %}
+        <p><a href="{{ url_for('ladder_blueprint.ladder_open') }}">Fermer le ladder.</a></p>
         {% endif %}
+
+        {% if not current_user.has_permission('play_vip') %}
+            Vous devez être vouched pour jouer sur le ladder VIP.<br />
+        {% else %}
+            {% if current_user.current_match is none %}
+                {% if in_queue %}
+                    <a href="{{ url_for('ladder_blueprint.queue', add='False') }}">Sortir de la Queue</a>
+                {% else %}
+                    <a href="{{ url_for('ladder_blueprint.queue', add='True') }}">Rentrez Dans la Queue</a>
+                {% endif %}
+            {% else %}
+                Vous êtes actuellement dans <a href="{{ url_for('ladder_blueprint.match', match_id=current_user.current_match) }}">une partie</a>, vous devez attendre que cette dernière soit terminée pour queue.
+            {% endif %}
+        {% endif %}
+        </p>
+        <p> Queue actuelle de {{ current_queue|length }} joueurs.
+        <ul>
+            {% for user in current_queue %}
+                <li><a href="{{ url_for('user_blueprint.user', steam_id=user.id) }}">{{ user.nickname }}</a></li>
+            {% endfor %}
+        </ul>
+        </p>
+    {% else %}
+        {% if current_user.has_permission('admin') %}
+        <p><a href="{{ url_for('ladder_blueprint.ladder_open') }}">Ouvrir le ladder.</a></p>
+        {% endif %}
+        <p>Le ladder n'est pas ouvert pour le moment.</p>
     {% endif %}
-    </p>
-    <p> Queue actuelle de {{ current_queue|length }} joueurs.
-    <ul>
-        {% for user in current_queue %}
-            <li><a href="{{ url_for('user_blueprint.user', steam_id=user.id) }}">{{ user.nickname }}</a></li>
-        {% endfor %}
-    </ul>
-    </p>
 </div>
 {% endblock %}
