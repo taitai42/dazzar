@@ -157,6 +157,7 @@ def make_blueprint():
 
         job_queue = QueueAdapter(current_app.config['RABBITMQ_LOGIN'], current_app.config['RABBITMQ_PASSWORD'])
         job_queue.produce(pickle.dumps(Job(JobType.ScanProfile, steam_id=current_user.id)))
+        job_queue.close()
 
         return redirect(url_for('user_blueprint.user', steam_id=current_user.id))
 

@@ -2,6 +2,7 @@ import pika
 import logging
 from enum import IntEnum
 
+
 class QueueAdapter():
     """Adapter to interact with the dazzar job queue.
 
@@ -44,6 +45,8 @@ class QueueAdapter():
     def ack_last(self):
         self.channel.basic_ack(delivery_tag=self.method.delivery_tag)
 
+    def close(self):
+        self.connection.close()
 
 class JobType(IntEnum):
     """Possible job types to process by steam bots.

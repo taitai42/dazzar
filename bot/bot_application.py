@@ -30,9 +30,14 @@ class DazzarWorkerManager:
         for bot in self.bots:
             bot.start()
 
-        # Pool sanity check TODO
+        # Pool sanity check
         while True:
-            sleep(30)
+            for i in range(0, self.app.config['STEAM_BOT_COUNT']):
+                if not self.bots[i].isAlive():
+                    self.bots[i] = (DotaBotThread(self.app.config['STEAM_BOT{0}_LOGIN'.format(i)],
+                                                  self.app.config['STEAM_BOT{0}_PASSWORD'.format(i)]))
+                    self.bots[i].start()
+            sleep(60)
 
 # Start if main script
 if __name__ == '__main__':

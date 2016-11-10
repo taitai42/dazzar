@@ -35,8 +35,15 @@ class DotaBotThread(EventEmitter, Thread):
         self.job_ready = False
         self.current_job = None
 
+    # Manage Clients
+
     def print_error(self, result):
         logging.error("Error: %s", result)
+
+    def reconnect_bot(self):
+        logging.info('disconnected')
+        self.job_ready = False
+        self.client.connect(retry=None)
 
     def login_bot(self):
         logging.info('connected')
@@ -49,6 +56,12 @@ class DotaBotThread(EventEmitter, Thread):
     def start_processing(self):
         logging.info('dota ready')
         self.job_ready = True
+
+    def stop_processing(self):
+        logging.info('dota notready')
+        self.job_ready = False
+
+    # Work with jobs
 
     def new_job(self):
         logging.info('Processing new job of type %s', self.current_job.type)
@@ -102,16 +115,18 @@ class DotaBotThread(EventEmitter, Thread):
         self.queue = QueueAdapter(self.app.config['RABBITMQ_LOGIN'], self.app.config['RABBITMQ_PASSWORD'])
 
         self.client.on('connected', self.login_bot)
+        self.client.on('disconnected', self.reconnect_bot)
         self.client.on('logged_on', self.start_dota)
         self.client.on('error', self.print_error)
 
         self.dota.on('error', self.print_error)
         self.dota.on('ready', self.start_processing)
+        self.dota.on('notready', self.stop_processing)
         self.dota.on('new_job', self.new_job)
         self.dota.on('scan_profile', self.scan_profile)
         self.dota.on('profile_card', self.scan_profile_result)
 
-        self.client.connect(retry=1)
+        self.client.connect(retry=None)
 
         while True:
             if self.job_ready and self.current_job is None:
@@ -120,4 +135,4 @@ class DotaBotThread(EventEmitter, Thread):
                     self.current_job = pickle.loads(message)
                     self.dota.emit('new_job')
 
-            gevent.sleep(5)
+            gevent.sleep(10)
