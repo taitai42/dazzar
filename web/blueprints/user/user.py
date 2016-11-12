@@ -60,6 +60,24 @@ def make_blueprint():
             and current_user.is_authenticated \
             and current_user.has_permission(constants.PERMISSION_ADMIN):
             target_user.nickname = None
+            target_user.verified = False
+            db.session().commit()
+        return redirect(url_for('user_blueprint.user', steam_id=steam_id))
+
+    @user_blueprint.route('/user/verify/<int:steam_id>')
+    @login_required
+    def verify_user(steam_id):
+        """Verify or Unverify an user
+
+        Parameters:
+            steam_id - user concerned
+        """
+        steam_id = int(steam_id)
+        target_user = User.query.filter_by(id=steam_id).first()
+        if target_user is not None \
+            and current_user.is_authenticated \
+            and current_user.has_permission(constants.PERMISSION_ADMIN):
+            target_user.verified = not target_user.verified
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 
@@ -93,7 +111,6 @@ def make_blueprint():
         for user in query.all():
             permissions = ""
             permissions += "A " if user.has_permission(constants.PERMISSION_ADMIN) else "- "
-            permissions += "V " if user.has_permission(constants.PERMISSION_VOUCH_VIP) else "- "
             permissions += "J " if user.has_permission(constants.PERMISSION_PLAY_VIP) else "- "
             data.append([str(user.id), user.nickname, permissions])
         results = {
@@ -136,8 +153,7 @@ def make_blueprint():
             return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 
         if current_user.is_authenticated and ((permission == constants.PERMISSION_ADMIN and current_user.has_permission(constants.PERMISSION_ADMIN))
-                                              or (permission == constants.PERMISSION_VOUCH_VIP and current_user.has_permission(constants.PERMISSION_ADMIN))
-                                              or (permission == constants.PERMISSION_PLAY_VIP and current_user.has_permission(constants.PERMISSION_VOUCH_VIP))):
+                                              or (permission == constants.PERMISSION_PLAY_VIP and current_user.has_permission(constants.PERMISSION_ADMIN))):
             target_user.give_permission(permission, give)
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))

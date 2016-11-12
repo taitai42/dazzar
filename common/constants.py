@@ -1,6 +1,5 @@
 PERMISSION_ADMIN = "admin"
 PERMISSION_PLAY_VIP = "play_vip"
-PERMISSION_VOUCH_VIP = "vouch_vip"
 
 QUEUE_NAME_VIP = "vip"
 

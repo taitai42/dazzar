@@ -9,6 +9,11 @@
             <a href="{{ url_for('user_blueprint.nickname_delete', steam_id=user.id) }}">Supprimer le pseudo du joueur (force nouveau choix)</a>
         {% endif %}
         <li>SteamID: {{ user.id }}</li>
+        <li>Utilisateur vérifié: {{ user.verified }}</li>
+        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
+            <a href="{{ url_for('user_blueprint.verify_user', steam_id=user.id) }}">Verifier/Dévérifier utilisateur</a>
+        {% endif %}
+        <li><img src="{{ user.avatar }}"><img src="{{ user.avatar_medium }}"><img src="{{ user.avatar_full }}"></li>
         <li><a href="http://www.dotabuff.com/players/{{ user.id }}">Dotabuff</a> & <a href="http://steamcommunity.com/profiles/{{ user.id }}">Steam Profile</a></li>
 
         <li>Admin:
@@ -26,21 +31,6 @@
             {% endif %}
         {% endif %}
 
-        <li>Voucher:
-            {% if user.has_permission("vouch_vip") %}
-            Oui
-            {% else %}
-            Non
-            {% endif %}
-        </li>
-        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
-            {% if user.has_permission("vouch_vip") %}
-            <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='vouch_vip', give=False) }}">Retirer la permission de gérer les joueurs</a>
-            {% else %}
-            <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='vouch_vip', give=True) }}">Donner la permission de gérer les joueurs</a>
-            {% endif %}
-        {% endif %}
-
         <li>Joueur VIP:
             {% if user.has_permission("play_vip") %}
             Oui
@@ -48,7 +38,7 @@
             Non
             {% endif %}
         </li>
-        {% if current_user.is_authenticated and current_user.has_permission("vouch_vip") %}
+        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
             {% if user.has_permission("play_vip") %}
             <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='play_vip', give=False) }}">Retirer la permission de jouer</a>
             {% else %}

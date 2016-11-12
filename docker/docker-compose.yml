@@ -32,7 +32,7 @@ services:
     container_name: "dazzar_web"
     build:
       context: ..
-      dockerfile: docker/dazzar_web/Dockerfile
+      dockerfile: docker/dazzar/Dockerfile
     ports:
       - "9004:8000"
     entrypoint: python3 /dazzar/web/web_application.py
@@ -49,7 +49,7 @@ services:
     container_name: "dazzar_bot"
     build:
       context: ..
-      dockerfile: docker/dazzar_bot/Dockerfile
+      dockerfile: docker/dazzar/Dockerfile
     depends_on:
       - dazzar_postgres
     entrypoint: python3 /dazzar/bot/bot_application.py

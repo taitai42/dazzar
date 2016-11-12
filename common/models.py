@@ -35,6 +35,10 @@ class User(db.Model):
 
     id = db.Column(db.BigInteger(), primary_key=True)
     nickname = db.Column(db.String(20), nullable=True, index=True)
+    avatar = db.Column(db.String(), nullable=True)
+    avatar_medium = db.Column(db.String(), nullable=True)
+    avatar_full = db.Column(db.String(), nullable=True)
+    verified = db.Column(db.Boolean(), nullable=False, default=False, server_default='False')
     permissions = db.relationship('UserPermission', secondary=permissions, lazy='dynamic',
                                   backref=db.backref('users', lazy='dynamic'))
     user_mix_details = db.relationship("UserMixDetail", uselist=False, lazy='joined',
@@ -52,6 +56,7 @@ class User(db.Model):
         self.current_match = None
         self.last_scan = None
         self.solo_mmr = None
+        self.verified = False
 
     def is_authenticated(self):
         return True

@@ -6,7 +6,9 @@ ENV LANG C.UTF-8
 RUN apt-get update && apt-get -y upgrade
 RUN apt-get -y install \
     python3-pip \
-    libpq-dev
+    libpq-dev \
+    libffi-dev \
+    git-core
 RUN pip3 install \
     tornado \
     psycopg2 \
@@ -17,7 +19,9 @@ RUN pip3 install \
     Flask-OpenID \
     Flask-Login \
     Flask-Script \
-    pika
+    pika \
+    git+https://github.com/ValvePython/steam \
+    git+https://github.com/ValvePython/dota2
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar
 

@@ -1,13 +1,15 @@
 import re
+import logging
+from steam import WebAPI
 
-from flask import Blueprint, request, url_for, redirect, render_template
+
+from flask import current_app, Blueprint, request, url_for, redirect, render_template
 from flask_login import current_user, login_user, login_required, logout_user
 
-from common.models import User
+from common.models import db, User
 
 
 def make_blueprint(oid, login_manager):
-
     login_blueprint = Blueprint('login_blueprint', __name__, template_folder='templates')
 
     @login_manager.user_loader
@@ -51,12 +53,25 @@ def make_blueprint(oid, login_manager):
 
     # Regex to get steam id from openid url
     _steam_id_re = re.compile('steamcommunity.com/openid/id/(.*?)$')
+    # Steam API access
 
     @oid.after_login
     def create_or_login(resp):
         """Function called after steam login."""
         match = _steam_id_re.search(resp.identity_url)
-        user = User.get_or_create(int(match.group(1)))
+        steam_id = int(match.group(1))
+
+        user = User.get_or_create(steam_id)
+
+        api = WebAPI(key=current_app.config['STEAM_KEY'])
+        resp=api.ISteamUser.GetPlayerSummaries_v2(steamids=steam_id)
+        user.avatar = resp['response']['players'][0]['avatar']
+        user.avatar_medium = resp['response']['players'][0]['avatarmedium']
+        user.avatar_full = resp['response']['players'][0]['avatarfull']
+        db.session.commit()
+
+        logging.error('%s', user.avatar)
+
         login_user(user)
         return redirect(url_for('index'))
 
