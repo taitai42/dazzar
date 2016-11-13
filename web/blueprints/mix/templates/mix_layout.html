@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<h1 class="page-header">Mixeur</h1>
+
+<div class="container">
+    <a href="{{ url_for('mix_blueprint.mix_users') }}">Les joueurs</a>
+    {% if current_user.is_authenticated %}
+    - <a href="{{ url_for('mix_blueprint.mix_edit') }}">Ma recherche de joueur</a>
+    {% endif %}
+</div>
+
+{% block mixbody %}{% endblock %}
+
+{% endblock %}

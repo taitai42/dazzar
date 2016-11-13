@@ -68,11 +68,13 @@
             <ul class="nav nav-sidebar">
                 <li class="active"><a href="{{ url_for('index') }}">Index</a></li>
                 <li><a href="{{ url_for('user_blueprint.users') }}">Utilisateurs</a></li>
+            </ul><br />
+            <ul class="nav nav-sidebar">
                 <li><a href="{{ url_for('mix_blueprint.mix_users') }}">Mixeur</a></li>
             </ul><br />
             <ul class="nav nav-sidebar">
                 <!--li><a href="{{ url_for('ladder_blueprint.ladder_scoreboard') }}">Score du ladder</a></li-->
-                <li><a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Matchs</a></li>
+                <li><a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Matchs VIP</a></li>
                 <li><a href="{{ url_for('ladder_blueprint.ladder_play') }}">Jouer</a></li>
             </ul>
         </div>

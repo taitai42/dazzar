@@ -1,0 +1,15 @@
+{% extends "mix_layout.html" %}
+{% block mixbody %}
+<h2>Details de l'annonce de {{ mix.user.nickname }}</h2>
+
+<div class="container">
+
+    <p>
+        Titre: {{ mix.title }}<br />
+        Objectif: {{ mix.goal }}<br />
+        Niveau: {{ mix.level }}<br />
+        Description:<br />
+        {{ mix.description|markdown }}
+    </p>
+</div>
+{% endblock %}

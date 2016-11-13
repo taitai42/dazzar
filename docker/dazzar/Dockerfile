@@ -13,6 +13,7 @@ RUN pip3 install \
     tornado \
     psycopg2 \
     Flask \
+    Flask-Markdown \
     Flask-Migrate \
     Flask-SQLAlchemy \
     SQLAlchemy \

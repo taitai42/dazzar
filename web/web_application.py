@@ -6,6 +6,7 @@ from flask import Flask, render_template
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_openid import OpenID
+from flaskext.markdown import Markdown
 
 from common.models import db
 from common.job_queue import QueueAdapter
@@ -19,6 +20,7 @@ def create_app():
     return app
 app = create_app()
 migrate = Migrate(app, db)
+Markdown(app)
 
 oid = OpenID(app, store_factory=lambda: None)
 login_manager = LoginManager()

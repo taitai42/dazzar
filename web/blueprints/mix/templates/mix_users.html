@@ -1,8 +1,58 @@
-{% extends "layout.html" %}
-{% block body %}
-<h1 class="page-header">MixTools</h1>
+{% extends "mix_layout.html" %}
+{% block mixbody %}
+<h2>Liste des joueurs cherchant des équipes</h2>
 
 <div class="container">
-    <p>TODO</p>
+    <p>Une recherche de ne reste visible que 7 jours si non actualisée.</p>
+    <table id="mixs" class="display cell-border stripe" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Utilisateur</th>
+                <th class="dt-head-center">Objectif</th>
+                <th class="dt-head-center">Niveau</th>
+                <th class="dt-head-center">Titre</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
 </div>
+{% endblock %}
+
+{% block endscripts %}
+<script>
+    $(document).ready(function() {
+        var mixs = $('#mixs').DataTable({
+            "paging": true,
+            "ordering": false,
+            "searching": false,
+            "lengthChange": false,
+            "pageLength": 25,
+            "info": false,
+            "language": {
+                "loadingRecords": "Chargement...",
+                "processing": "Chargement...",
+                "emptyTable": "Aucun résultat.",
+                "search": "Rechercher:",
+                "paginate": {
+                    "first":      "Premier",
+                    "last":       "Dernier",
+                    "next":       "Suivant",
+                    "previous":   "Précédent"
+                }
+            },
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{{ url_for('mix_blueprint.api_mixs') }}",
+            "columnDefs": [
+
+            ]
+        });
+
+        mixs.on( 'click', 'td', function () {
+            window.location = '{{ url_for('mix_blueprint.mix', mix_id=0) }}' + mixs.row(this).data()[4];
+        });
+    } );
+</script>
 {% endblock %}

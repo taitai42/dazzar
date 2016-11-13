@@ -137,7 +137,8 @@ class UserMixDetail(db.Model):
     id = db.Column(db.BigInteger(), db.ForeignKey('user.id'), primary_key=True)
     refresh_date = db.Column(db.DateTime, index=True, nullable=False)
     enabled = db.Column(db.Boolean, nullable=False, default=False)
-    title = db.Column(db.String(20), nullable=True)
+    title = db.Column(db.String(40), nullable=True)
+    goal = db.Column(db.String(40), nullable=True)
     level = db.Column(db.String(20), nullable=True)
     description = db.Column(db.Text, nullable=True)
 
