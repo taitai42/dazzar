@@ -1,8 +1,16 @@
-{% extends "layout.html" %}
-{% block body %}
-<h1 class="page-header">Détails du Match</h1>
+{% extends "ladder_layout.html" %}
+
+{% block ladderbody %}
+<h2>Détails</h2>
 
 <div class="container">
+    {% if current_user.is_authenticated
+        and current_user.has_permission("admin")
+        and match.status != 2
+        and match.status != 4
+    %}
+        <a href="{{ url_for('ladder_blueprint.cancel_match', match_id=match.id) }}">Annuler ce match</a>
+    {% endif %}
     <ul>
         <li>Match Id: {{ match.id }}</li>
         <li>Match Date: {{ match.created }}</li>
@@ -14,7 +22,8 @@
     Joueurs :
     <ul>
         {% for player in match.players %}
-            <li><a href="{{ url_for('user_blueprint.user', steam_id=player.id) }}">{{ player.nickname }}</a></li>
+            <li><a href="{{ url_for('user_blueprint.user', steam_id=player.player_id) }}">{{ player.player.nickname }}</a> -
+                {% if player.is_radiant %}Radiant{% else %}Dire {% endif %} - {{ player.mmr_before }} - {{ player.mmr_after }}</li>
         {% endfor %}
     </ul>
 </div>

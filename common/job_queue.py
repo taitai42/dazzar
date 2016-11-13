@@ -1,4 +1,5 @@
 import pika
+from pika.exceptions import ConnectionClosed
 import logging
 from enum import IntEnum
 
@@ -14,19 +15,25 @@ class QueueAdapter():
     """
 
     def __init__(self, username, password):
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='dazzar_rabbitmq',
-                                                                            credentials=pika.PlainCredentials(username,
-                                                                                                              password)))
-        self.channel = self.connection.channel()
-        self.channel.basic_qos(prefetch_count=1)
-        self.channel.queue_declare(queue='dazzar_jobs', durable=True)
+        self.username = username
+        self.password = password
+        self.connection = None
+        self.channel = None
         self.consume_thread = None
-
         self.bot = None
         self.method = None
 
-    def produce(self, message):
+        self._connect()
+
+    def _connect(self):
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='dazzar_rabbitmq',
+                                                                            credentials=pika.PlainCredentials(self.username,
+                                                                                                              self.password)))
         self.channel = self.connection.channel()
+        self.channel.basic_qos(prefetch_count=1)
+        self.channel.queue_declare(queue='dazzar_jobs', durable=True)
+
+    def produce(self, message):
         self.channel.basic_publish(exchange='',
                                    routing_key='dazzar_jobs',
                                    body=message,
@@ -36,23 +43,26 @@ class QueueAdapter():
 
     def consume(self):
         method_frame, header_frame, body = self.channel.basic_get('dazzar_jobs')
+        result = None
+
         if method_frame:
             self.method = method_frame
-            return body
-        else:
-            return None
+            result = body
+
+        return result
 
     def ack_last(self):
         self.channel.basic_ack(delivery_tag=self.method.delivery_tag)
 
-    def close(self):
-        self.connection.close()
+    def refresh(self):
+        self.connection.process_data_events()
+
 
 class JobType(IntEnum):
     """Possible job types to process by steam bots.
     """
     ScanProfile = 0
-    CreateGame = 1
+    VIPGame = 1
 
 
 class Job:
@@ -61,9 +71,10 @@ class Job:
     Attributes
         type - The job type from JobType enum
         steam_id - steam_id of a user if necessary
-        game_id - game_id of a game if necessary
+        match_id - match_id of a game if necessary
     """
-    def __init__(self, job_type=JobType.ScanProfile, steam_id=0, game_id=0):
+    def __init__(self, job_type=None, steam_id=None, match_id=None):
         self.type = job_type
         self.steam_id = steam_id
-        self.game_id = game_id
+        self.match_id = match_id
+        self.scan_finish = False

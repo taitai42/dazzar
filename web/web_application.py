@@ -2,6 +2,9 @@
 # Application Setup #
 #####################
 
+import logging
+from datetime import timedelta
+
 from flask import Flask, render_template
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -21,6 +24,7 @@ def create_app():
 app = create_app()
 migrate = Migrate(app, db)
 Markdown(app)
+job_queue = QueueAdapter(app.config['RABBITMQ_LOGIN'], app.config['RABBITMQ_PASSWORD'])
 
 oid = OpenID(app, store_factory=lambda: None)
 login_manager = LoginManager()
@@ -39,8 +43,8 @@ import web.blueprints.mix.mix as mix_blueprint
 
 
 app.register_blueprint(login_blueprint.make_blueprint(oid, login_manager))
-app.register_blueprint(user_blueprint.make_blueprint())
-app.register_blueprint(ladder_blueprint.make_blueprint())
+app.register_blueprint(user_blueprint.make_blueprint(job_queue))
+app.register_blueprint(ladder_blueprint.make_blueprint(job_queue))
 app.register_blueprint(mix_blueprint.make_blueprint())
 
 ##########
@@ -58,6 +62,11 @@ def index():
 # Start Tornado Web Server #
 ############################
 
+def refresh_rabbitmq(io_loop):
+    global job_queue
+    job_queue.refresh()
+
+    loop.call_later(60, refresh_rabbitmq, io_loop)
 
 if __name__ == "__main__":
     from tornado.wsgi import WSGIContainer
@@ -66,4 +75,6 @@ if __name__ == "__main__":
 
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(8000)
-    IOLoop.instance().start()
+    loop = IOLoop.instance()
+    refresh_rabbitmq(loop)
+    loop.start()

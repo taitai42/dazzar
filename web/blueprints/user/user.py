@@ -11,7 +11,7 @@ from common.helpers import validate_nickname
 import common.constants as constants
 
 
-def make_blueprint():
+def make_blueprint(job_queue):
 
     user_blueprint = Blueprint('user_blueprint', __name__, template_folder='templates')
 
@@ -24,7 +24,7 @@ def make_blueprint():
             GET - give the page if nickname not setup
             POST - setup the nickname if valid
         """
-        if (not current_user.is_authenticated) or (current_user.nickname is not None):
+        if current_user.nickname is not None:
             return redirect(url_for('index'))
 
         if request.method == 'GET':
@@ -36,11 +36,9 @@ def make_blueprint():
             if error is not None:
                 return render_template('user_nickname.html', error=error)
 
-            session = db.session()
-            if session.query(User).filter_by(nickname=posted_nickname).first() is not None:
+            if db.session().query(User).filter_by(nickname=posted_nickname).first() is not None:
                 return render_template('user_nickname.html', error='Le pseudo est déjà utilisé.')
-            user = session.query(User).filter_by(id=current_user.id).first()
-            user.nickname = posted_nickname
+            current_user.nickname = posted_nickname
             db.session().commit()
             return redirect(url_for('index'))
         abort(404)
@@ -55,14 +53,25 @@ def make_blueprint():
             steam_id - user concerned
         """
         steam_id = int(steam_id)
-        target_user = User.query.filter_by(id=steam_id).first()
-        if target_user is not None \
-            and current_user.is_authenticated \
-            and current_user.has_permission(constants.PERMISSION_ADMIN):
+        target_user = db.session().query(User).filter_by(id=steam_id).first()
+        if target_user is not None and current_user.has_permission(constants.PERMISSION_ADMIN):
             target_user.nickname = None
             target_user.verified = False
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
+
+    @user_blueprint.route('/user/force_out/<int:steam_id>')
+    @login_required
+    def force_out(steam_id):
+        """
+        """
+        steam_id = int(steam_id)
+        target_user = db.session().query(User).filter_by(id=steam_id).first()
+        if target_user is not None and current_user.has_permission(constants.PERMISSION_ADMIN):
+            target_user.current_match = None
+            db.session().commit()
+        return redirect(url_for('user_blueprint.user', steam_id=steam_id))
+
 
     @user_blueprint.route('/user/verify/<int:steam_id>')
     @login_required
@@ -73,10 +82,8 @@ def make_blueprint():
             steam_id - user concerned
         """
         steam_id = int(steam_id)
-        target_user = User.query.filter_by(id=steam_id).first()
-        if target_user is not None \
-            and current_user.is_authenticated \
-            and current_user.has_permission(constants.PERMISSION_ADMIN):
+        target_user = db.session().query(User).filter_by(id=steam_id).first()
+        if target_user is not None and current_user.has_permission(constants.PERMISSION_ADMIN):
             target_user.verified = not target_user.verified
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
@@ -95,7 +102,7 @@ def make_blueprint():
         length = 50
         start = int(request.args.get('start', '0'))
 
-        query = User.query\
+        query = db.session().query(User)\
             .order_by(User.nickname)\
             .filter(User.nickname.isnot(None))
 
@@ -128,8 +135,10 @@ def make_blueprint():
         Parameters
             steam_id - user to return the detailed page of
         """
-        user_requested = User.query.filter_by(id=steam_id).first_or_404()
-        if current_user.id == user_requested.id and \
+        user_requested = db.session().query(User).filter_by(id=steam_id).first()
+        if user_requested is None:
+            abort(404)
+        if current_user.is_authenticated and current_user.id == user_requested.id and \
             (current_user.profile_scan_info is None or
             datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(minutes=5)):
             scan_possible = True
@@ -148,13 +157,14 @@ def make_blueprint():
             give - boolean to decide to add permission or remove
         """
         give = give == 'True'
-        target_user = User.query.filter_by(id=steam_id).first()
+        target_user = db.session().query(User).filter_by(id=steam_id).first()
         if target_user is None:
             return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 
-        if current_user.is_authenticated and ((permission == constants.PERMISSION_ADMIN and current_user.has_permission(constants.PERMISSION_ADMIN))
-                                              or (permission == constants.PERMISSION_PLAY_VIP and current_user.has_permission(constants.PERMISSION_ADMIN))):
+        if current_user.has_permission(constants.PERMISSION_ADMIN):
             target_user.give_permission(permission, give)
+            if permission == constants.PERMISSION_PLAY_VIP and give and target_user.vip_mmr is None:
+                target_user.vip_mmr = 2000
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 
@@ -171,9 +181,7 @@ def make_blueprint():
         current_user.profile_scan_info.last_scan_request = datetime.utcnow()
         db.session.commit()
 
-        job_queue = QueueAdapter(current_app.config['RABBITMQ_LOGIN'], current_app.config['RABBITMQ_PASSWORD'])
         job_queue.produce(pickle.dumps(Job(JobType.ScanProfile, steam_id=current_user.id)))
-        job_queue.close()
 
         return redirect(url_for('user_blueprint.user', steam_id=current_user.id))
 

@@ -27,7 +27,7 @@ def make_blueprint():
 
     @mix_blueprint.route('/mix/edit', methods=['GET', 'POST'])
     def mix_edit():
-        mix_requested = current_user.user_mix_details
+        mix_requested = current_user.user_mix_detail
 
         if request.method == 'GET':
             return render_template('mix_edit.html', mix=mix_requested)
@@ -35,7 +35,7 @@ def make_blueprint():
 
             if mix_requested is None:
                 mix_requested = UserMixDetail()
-                current_user.user_mix_details = mix_requested
+                current_user.user_mix_detail = mix_requested
             mix_requested.title = request.form.get('title') or ''
             mix_requested.goal = request.form.get('goal') or ''
             mix_requested.level = request.form.get('level') or ''

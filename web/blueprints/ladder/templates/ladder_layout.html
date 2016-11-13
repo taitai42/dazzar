@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<h1 class="page-header">Ladder</h1>
+
+<div class="container">
+    <a href="{{ url_for('ladder_blueprint.ladder_play') }}">Jouer</a> - <a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Liste des Matchs</a>
+</div>
+
+{% block ladderbody %}{% endblock %}
+
+{% endblock %}

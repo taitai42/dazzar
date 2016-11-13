@@ -20,9 +20,8 @@ RUN pip3 install \
     Flask-OpenID \
     Flask-Login \
     Flask-Script \
-    pika \
-    git+https://github.com/ValvePython/steam \
-    git+https://github.com/ValvePython/dota2
+    pika
+RUN pip3 install git+https://github.com/ValvePython/dota2
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar
 

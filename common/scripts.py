@@ -20,7 +20,7 @@ def make_admin(steam_id):
     Attributes:
         steam_id - user steam id to make admin
     """
-    user = User.query.filter_by(id=steam_id).first()
+    user = db.session().query(User).filter_by(id=steam_id).first()
     if user is None:
         print('No user to raise admin.')
     else:

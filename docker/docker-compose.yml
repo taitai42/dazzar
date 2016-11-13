@@ -18,8 +18,11 @@ services:
   dazzar_rabbitmq:
     image: dazzar_rabbitmq
     container_name: "dazzar_rabbitmq"
+    restart: always
     build:
       context: dazzar_rabbitmq
+    volumes:
+      - "/docker/dazzar_rabbitmq/data:/var/lib/rabbitmq/"
     environment:
       - RABBITMQ_DEFAULT_USER=dazzar
     env_file:

@@ -8,7 +8,7 @@
         Titre: {{ mix.title }}<br />
         Objectif: {{ mix.goal }}<br />
         Niveau: {{ mix.level }}<br />
-        Description:<br />
+        <a href="{{ url_for('user_blueprint.user', steam_id=mix.id)}}">Profil de l'utilisateur</a><br />
         {{ mix.description|markdown }}
     </p>
 </div>
