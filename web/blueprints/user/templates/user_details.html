@@ -67,7 +67,7 @@
         {% if scan_possible %}
             <a href="{{ url_for('user_blueprint.user_scan') }}">Cliquez-ici</a> pour lancer un nouveau scan.
         {% else %}
-        Vous ne pouvez lancer un scan qu'une fois toutes les 5 minutes.
+        Un scan est en cours, rafraichissez la page dans un moment. Vous ne pouvez lancer un scan qu'une fois toutes les 5 minutes.
         {% endif %}
     </p>
     {% endif %}

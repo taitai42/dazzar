@@ -3,8 +3,8 @@
 Website with tools for the French Dota 2 community. Some planned features are:
 
 * [X] Logging with Steam for a unique account.
-* [ ] VIP Ladder system for 5K+ players, open 1 times per week.
-* [ ] Mix tool to find players to make new teams.
+* [X] VIP Ladder system for 5K+ players, open 1 times per week.
+* [X] Mix tool to find players to make new teams.
 * [ ] Managing tools to help teams organize training, scrims and tournaments.
 * [ ] Pool of teams looking to scrim against each others.
 * [ ] Social tools with news, comments, twitters, videos

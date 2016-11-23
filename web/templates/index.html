@@ -1,8 +1,83 @@
 {% extends "layout.html" %}
 {% block body %}
-<h1 class="page-header">Index</h1>
+<h1 class="page-header">Dazzar</h1>
 
 <div class="container">
-    <p>Le ladder VIP est en cours de création...</p>
+    <p>Dazzar est un site destiné à apporter un certain nombre d'outils à la communauté Francophone de Dota 2.</p>
+
+    <ul>
+        <li>
+            Les différentes fonctionnalités sont accessibles en se connectant avec votre compte Steam. Attention au
+            choix du pseudo, vous ne pourrez pas le modifier par la suite!
+        </li>
+        <li>
+            Si au cours de l'utilisation du site, vous rencontrez des problèmes (ladder bloqué, erreur avec les bots,
+            insultes ou autres), ou si vous avez tout simplement des suggestions à faire, passez sur le <a
+                href="https://discord.gg/3Mb99qQ">discord dédié à dazzar</a>.
+        </li>
+        <li>
+            Bien qu'ayant un design très cru, le site est fonctionnel. Les améliorations viendront par la suite. Si vous
+            pensez pouvoir aider dans la réalisation du site, vous pouvez retrouver le code sur <a
+                href="https://github.com/Philaeux/dazzar">Github</a>.
+        </li>
+        <li>
+            Le site est plus ou moins lié à la <a href="https://www.froggedtv.com/">FroggedTV</a>, passez leur faire un
+            coucou de temps en temps.
+        </li>
+    </ul>
+
+    <h2>Le Ladder</h2>
+    <p>Le ladder est une alternative au solo matchmaking dont le but est de réunir la communauté Francophone.</p>
+
+    <ul>
+        <li>
+            Le ladder est ouvert tous les vendredis de 20h à 2 h. La présence d'assez de joueurs et la longévité du
+            ladder sont un défi pour une si petite communauté. Si la présence est importante, il sera possible d'ouvrir
+            à un deuxième soir sur semaine.
+        </li>
+        <li>
+            Le mode de jeu est Random Draft, sur un serveur Luxembourg, avec limitation des pauses. Les équipes sont
+            formées à partir du vMMR (VIP-MMR) de chaque joueur.
+        </li>
+        <li>Chaque joueur commence à 2K vMMR plus l'excès au-dessus de 5k MMR (un joueur à 7k2 MMR commencera à 4k2
+            vMMR). Une victoire défaite compte pour +50/-50, alors qu'un dodge est puni de 150 et un leave de 300. Les
+            différents algorithmes présents dans la plate-forme sont amenés à évoluer.
+        </li>
+        <li>
+            Pour pouvoir participer, vous devez avoir plus de 5K MMR dans Dota. Connectez-vous au site puis demandez au
+            bot de scanner votre MMR depuis votre profil. N'oubliez pas d'afficher votre MMR sur votre profil (dans une
+            des deux cases).
+        </li>
+        <li>
+            La gestion des parties est automatique. Lorsque 10 joueurs sont disponibles, un bot va créer la room et vous
+            inviter dans la partie. Rejoignez le slot de votre équipe et le bot lancera la partie une fois que tout le
+            monde est présent. Le score sera automatiquement reporté sur le site internet.
+        </li>
+        <li>
+            Seul le MMR détermine si vous pouvez rentrer sur le ladder. Cependant s'il y a des abus trop importants
+            (comportements toxiques, faire venir des non francophones pour troll...) nous limiterons les accès au ladder
+            avec vérification des joueurs.
+        </li>
+    </ul>
+
+    <h2>Mixeur</h2>
+    <p>Le Mixeur est un outil pour rencontrer de nouvelles personnes avec qui jouer, pour quelque occasion que ce
+        soit.</p>
+
+    <ul>
+        <li>
+            Seules les annonces récentes sont affichées (moins de 7 jours) pour éviter une pollution du service.
+        </li>
+        <li>
+            Le format de l'annonce est assez libre et c'est à vous d'en faire l'utilisation que vous jugez bonne
+            (rechercher des lasts, rechercher une équipe), en informant au maximum l'objectif (MMR de groupe, Tournoi
+            FroggedTV, BattleCup, Team TI), et le niveau (débutant, 5K+)... La description supporte le format Markdown
+            si vous souhaitez mettre en page votre annonce.
+        </li>
+        <li>Lorsque vous désactivez votre annonce, elle est conservée sur le serveur. Vous pouvez rapidement la
+            réactiver par la suite.
+        </li>
+    </ul>
+
 </div>
 {% endblock %}
