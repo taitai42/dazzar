@@ -14,16 +14,13 @@
         {% endif %}
 
         {% if not current_user.has_permission('play_vip') %}
-            Vous devez être vouched pour jouer sur le ladder VIP.<br />
+            Vous devez être vouched pour jouer sur le ladder VIP.
+            Rendez vous sur votre profil pour demander au bot de scanner votre MMR.<br />
         {% else %}
-            {% if current_user.current_match is none %}
-                {% if in_queue %}
-                    <a href="{{ url_for('ladder_blueprint.queue') }}">Sortir de la Queue</a>
-                {% else %}
-                    <a href="{{ url_for('ladder_blueprint.queue') }}">Rentrez Dans la Queue</a>
-                {% endif %}
+            {% if in_queue %}
+                <a href="{{ url_for('ladder_blueprint.queue') }}">Sortir de la Queue</a>
             {% else %}
-                Vous êtes actuellement dans <a href="{{ url_for('ladder_blueprint.match', match_id=current_user.current_match) }}">une partie</a>, vous devez attendre que cette dernière soit terminée pour queue.
+                <a href="{{ url_for('ladder_blueprint.queue') }}">Rentrez Dans la Queue</a>
             {% endif %}
         {% endif %}
         </p>

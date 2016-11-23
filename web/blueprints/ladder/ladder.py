@@ -6,7 +6,7 @@ from flask import Blueprint, current_app, request, url_for, abort, redirect, ren
 from flask_login import current_user, login_required
 
 from common.models import db, User, QueuedPlayer, Match, PlayerInMatch
-from common.job_queue import QueueAdapter, Job, JobType
+from common.job_queue import Job, JobType
 import common.constants as constants
 
 
@@ -19,6 +19,9 @@ def make_blueprint(job_queue):
     def ladder_play():
         """Page to enter the league queue.
         Display the queue and enter/quit if user can play."""
+        if current_user.current_match is not None:
+            return redirect(url_for('ladder_blueprint.match', match_id=current_user.current_match))
+
         in_queue = False
         current_queue = []
         is_open = current_app.config['VIP_LADDER_OPEN']
@@ -113,7 +116,7 @@ def make_blueprint(job_queue):
                 
                 query = QueuedPlayer.query.filter_by(queue_name=constants.QUEUE_NAME_VIP)\
                     .order_by(QueuedPlayer.added).limit(10)
-                if query.count() == 10:
+                if query.count() == 1:
                     # Create a game
                     players = []
                     for player in query.all():
