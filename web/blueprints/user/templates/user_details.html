@@ -38,6 +38,10 @@
             Non
             {% endif %}
         </li>
+        {% if user.has_permission("play_vip") %}
+        <li>VIP MMR: {{ user.vip_mmr }}</li>
+        {% endif %}
+
         {% if current_user.is_authenticated and current_user.has_permission("admin") %}
             {% if user.has_permission("play_vip") %}
             <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='play_vip', give=False) }}">Retirer la permission de jouer</a>

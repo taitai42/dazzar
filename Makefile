@@ -76,7 +76,7 @@ bot-run:
 
 # scripts
 SCRIPT?=make_admin -i 76561197961298382
-script:
+script: build
 	docker run --rm --name dazzar_script --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar dazzar_web python3 /dazzar/common/scripts.py $(SCRIPT)
 
 # build

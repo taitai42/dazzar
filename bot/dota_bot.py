@@ -1,3 +1,4 @@
+import math
 import logging
 from threading import Thread
 import gevent
@@ -15,6 +16,7 @@ from web.web_application import create_app
 from common.models import db, User, Match, PlayerInMatch
 from common.job_queue import QueueAdapter, Job, JobType
 import common.constants as constants
+
 
 
 class DotaBotThread(EventEmitter, Thread):
@@ -121,7 +123,7 @@ class DotaBotThread(EventEmitter, Thread):
                 if user.solo_mmr > 5000:
                     user.give_permission(constants.PERMISSION_PLAY_VIP, True)
                     if user.vip_mmr is None:
-                        user.vip_mmr = 2000 + user.solo_mmr - 5000
+                        user.vip_mmr = 2000 + math.floor((user.solo_mmr - 5000)/2)
             db.session.commit()
         self.current_job.scan_finish = True
 
@@ -177,10 +179,11 @@ class DotaBotThread(EventEmitter, Thread):
             self.invite_timer = timedelta(minutes=5)
             self.compute_missing_players()
             start = False
+            refresh_rate = 10
             while self.invite_timer != timedelta(0):
                 for player in self.missing_players:
                     self.dota.invite_to_lobby(player)
-                gevent.sleep(30)
+                gevent.sleep(refresh_rate)
                 self.compute_missing_players()
 
                 if len(self.missing_players) == 0 and len(self.wrong_team_players) == 0:
@@ -192,7 +195,7 @@ class DotaBotThread(EventEmitter, Thread):
                     # Say: Temps restant avant lancement: self.invite_timer
                     logging.error('Missing players %s', self.missing_players)
                     logging.error('Wrong team players %s', self.wrong_team_players)
-                    self.invite_timer = self.invite_timer - timedelta(seconds=30)
+                    self.invite_timer = self.invite_timer - timedelta(seconds=refresh_rate)
 
             if not start:
                 # Say: Partie annulée - punish
@@ -288,8 +291,12 @@ class DotaBotThread(EventEmitter, Thread):
                 continue
             if message_player.id in self.missing_players:
                 self.missing_players.remove(message_player.id)
-                if not ((message_player.team == DOTA_GC_TEAM.GOOD_GUYS and self.players[message_player.id].is_radiant) or \
-                       (message_player.team == DOTA_GC_TEAM.BAD_GUYS and not self.players[message_player.id].is_radiant)):
+                good_slot = message_player.slot == self.players[message_player.id].team_slot
+                good_team = (message_player.team == DOTA_GC_TEAM.GOOD_GUYS and
+                             self.players[message_player.id].is_radiant) or \
+                            (message_player.team == DOTA_GC_TEAM.BAD_GUYS and
+                             not self.players[message_player.id].is_radiant)
+                if not (good_team and good_slot):
                     self.wrong_team_players.append(message_player.id)
                     if message_player.team != DOTA_GC_TEAM.PLAYER_POOL:
                         self.dota.practice_lobby_kick_from_team(SteamID(message_player.id).as_32)

@@ -24,13 +24,7 @@
             {% endif %}
         {% endif %}
         </p>
-        <p> Queue actuelle de {{ current_queue|length }} joueurs.
-        <ul>
-            {% for user in current_queue %}
-                <li><a href="{{ url_for('user_blueprint.user', steam_id=user.id) }}">{{ user.nickname }}</a></li>
-            {% endfor %}
-        </ul>
-        </p>
+        <p> Queue actuelle de {{ current_queue|length }} / 10 joueurs.</p>
     {% else %}
         {% if current_user.has_permission('admin') %}
         <p><a href="{{ url_for('ladder_blueprint.ladder_open') }}">Ouvrir le ladder.</a></p>

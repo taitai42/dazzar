@@ -210,17 +210,19 @@ class PlayerInMatch(db.Model):
     mmr_before = db.Column(db.Integer, nullable=False)
     mmr_after = db.Column(db.Integer, nullable=True)
     is_radiant = db.Column(db.Boolean, nullable=False)
+    team_slot = db.Column(db.Integer, nullable=False)
     is_leaver = db.Column(db.Boolean, nullable=False)
 
     player = db.relationship('User', back_populates='matches')
     match = db.relationship('Match', back_populates='players')
 
-    def __init__(self, player, match, is_radiant):
+    def __init__(self, player, match, is_radiant, team_slot):
         self.player = player
         self.match = match
         self.mmr_before = player.vip_mmr
         self.mmr_after = None
         self.is_radiant = is_radiant
+        self.team_slot = team_slot
         self.is_leaver = False
 
 
@@ -256,5 +258,5 @@ class Match(db.Model):
                 is_radiant = not is_radiant
             sums[is_radiant] += player.vip_mmr
             count[is_radiant] += 1
-            player_in_match = PlayerInMatch(player, self, is_radiant)
+            player_in_match = PlayerInMatch(player, self, is_radiant, count[is_radiant])
             self.players.append(player_in_match)

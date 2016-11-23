@@ -1,3 +1,5 @@
+import math
+
 from flask_script import Manager
 
 from web.web_application import app, db
@@ -26,6 +28,19 @@ def make_admin(steam_id):
     else:
         user.give_permission(constants.PERMISSION_ADMIN, True)
         db.session().commit()
+
+
+@manager.command
+def reset_vip_mmr():
+    """Reset all VIP MMR to the default value.
+    """
+    for user in db.session().query(User).all():
+        if user.solo_mmr is None or user.solo_mmr < 5000:
+            user.vip_mmr = None
+            user.give_permission(constants.PERMISSION_PLAY_VIP, False)
+        else:
+            user.vip_mmr = 2000 + math.floor((user.solo_mmr - 5000)/2)
+    db.session().commit()
 
 
 #######################

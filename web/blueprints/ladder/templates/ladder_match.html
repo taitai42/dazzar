@@ -1,7 +1,7 @@
 {% extends "ladder_layout.html" %}
 
 {% block ladderbody %}
-<h2>Détails</h2>
+<h2>Dazzar Game {{ match.id }}</h2>
 
 <div class="container">
     {% if current_user.is_authenticated
@@ -9,22 +9,70 @@
         and match.status != 2
         and match.status != 4
     %}
-        <a href="{{ url_for('ladder_blueprint.cancel_match', match_id=match.id) }}">Annuler ce match</a>
+        <p><a href="{{ url_for('ladder_blueprint.cancel_match', match_id=match.id) }}">Annuler ce match</a></p>
     {% endif %}
+
     <ul>
-        <li>Match Id: {{ match.id }}</li>
-        <li>Match Date: {{ match.created }}</li>
-        <li>Match Status: {{ match.status }}</li>
+        <li>Partie crée le {{ match.created }}</li>
+        <li>État du match -
+            {% if match.status == 0 %}Un bot va créer la game.
+            {% elif match.status == 1 %}La game est crée, le bot invite les joueurs avant de lancer.
+            {% elif match.status == 2 %}La partie a été annulée (dodge/erreur).
+            {% elif match.status == 3 %}La partie est en cours dans Dota.
+            {% elif match.status == 4 %}La partie est terminée.
+            {% endif %}
+        </li>
         {% if current_user.is_authenticated and (current_user.has_permission('admin') or current_user in match.players) %}
-            <li>Password: {{ match.password }}</li>
+            <li>Mot de passe du match "{{ match.password }}" (si vous ne recevez pas l'invitation du bot)</li>
         {% endif %}
     </ul>
-    Joueurs :
-    <ul>
-        {% for player in match.players %}
-            <li><a href="{{ url_for('user_blueprint.user', steam_id=player.player_id) }}">{{ player.player.nickname }}</a> -
-                {% if player.is_radiant %}Radiant{% else %}Dire {% endif %} - {{ player.mmr_before }} - {{ player.mmr_after }}</li>
-        {% endfor %}
-    </ul>
+
+    <p>Veuillez bien respecter votre team/slot sous peine d'être kick par le bot.</p>
+
+    <table id="players" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Pseudo</th>
+                <th>Team</th>
+                <th>Slot</th>
+                <th>vMMR</th>
+                <th>vMMR+</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in match.players %}
+            <tr>
+                <td><a href="{{ url_for('user_blueprint.user', steam_id=player.player_id) }}">{{ player.player.nickname }}</a></td>
+                <td>{% if player.is_radiant %}Radiant{% else %}Dire {% endif %}</td>
+                <td>{{ player.team_slot }}</td>
+                <td>{{ player.mmr_before }}</td>
+                <td>{% if player.mmr_after is not none %}{{ player.mmr_after }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
 </div>
+{% endblock %}
+
+{% block endscripts %}
+<script>
+    $(document).ready(function() {
+        $('#players').DataTable({
+            "paging": false,
+            "ordering": false,
+            "lengthChange": false,
+            "searching": false,
+            "pageLength": 20,
+            "info": false,
+            "language": {
+                "emptyTable": "Aucun résultat."
+            },
+            "columnDefs": [
+            {
+                "orderData": [ 1, 2 ]
+            }]
+        });
+    });
+</script>
 {% endblock %}
