@@ -55,26 +55,26 @@
                     "render": function ( data, type, full, meta ) {
                                   var html = ''
                                   html += '<a href="http://steamcommunity.com/profiles/' + full[3]
-                                       + 'data-toggle="tooltip" data-placement="bottom" title="Profil Steam Community"'
-                                       + '"><img class=".img-rounded" src="{{ url_for('static', filename='img/steamicon.png') }}"></a>'
+                                       + '" data-toggle="tooltip" data-placement="bottom" title="Profil Steam Community"'
+                                       + '><img class=".img-rounded" src="{{ url_for('static', filename='img/steamicon.png') }}"></a>'
                                   html += '&nbsp;<a href="http://www.dotabuff.com/players/' + full[3]
-                                       + 'data-toggle="tooltip" data-placement="bottom" title="Profil Dotabuff"'
-                                       + '"><img src="{{ url_for('static', filename='img/dotabufficon.png') }}"></a>'
+                                       + '" data-toggle="tooltip" data-placement="bottom" title="Profil Dotabuff"'
+                                       + '><img src="{{ url_for('static', filename='img/dotabufficon.png') }}"></a>'
                                   if (data['admin']) {
                                      html += '&nbsp;<img src="{{ url_for('static', filename='img/adminicon.png') }}"'
-                                          + 'data-toggle="tooltip" data-placement="bottom" title="Admin">'
+                                          + ' data-toggle="tooltip" data-placement="bottom" title="Admin">'
                                   } else {
                                      html += '&nbsp;<img src="{{ url_for('static', filename='img/emptyicon.png') }}">'
                                   }
                                   if (data['verified']) {
                                      html += '&nbsp;<img src="{{ url_for('static', filename='img/verifiedicon.png') }}"'
-                                          + 'data-toggle="tooltip" data-placement="bottom" title="Utilisateur Vérifié">'
+                                          + ' data-toggle="tooltip" data-placement="bottom" title="Utilisateur Vérifié">'
                                   } else {
                                      html += '&nbsp;<img src="{{ url_for('static', filename='img/emptyicon.png') }}">'
                                   }
                                   if (data['play_vip']) {
                                      html += '&nbsp;<img src="{{ url_for('static', filename='img/vipicon.png') }}"'
-                                          + 'data-toggle="tooltip" data-placement="bottom" title="Joueur VIP">'
+                                          + ' data-toggle="tooltip" data-placement="bottom" title="Joueur VIP">'
                                   } else {
                                      html += '&nbsp;<img src="{{ url_for('static', filename='img/emptyicon.png') }}">'
                                   }
