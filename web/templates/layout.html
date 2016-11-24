@@ -2,92 +2,128 @@
 <html lang="fr">
 <head>
     <meta charset="utf-8">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="Site communautaire dédié à la communauté Francophone de Dota 2.">
+    <meta name="author" content="Vincent 'Philaeux' Lamotte">
 
     <title>Dazzar</title>
 
-    <style type="text/css">
-        :root .carbonad,
-        :root #carbonads-container,
-        :root #content > #right > .dose > .dosesingle,
-        :root #content > #center > .dose > .dosesingle
-        { display: none !important; }
-    </style>
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}"/>
 
-    <script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- CDN import -->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
     <!-- Datatables -->
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css">
-    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" charset="utf8"
+            src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
 
     {% block header %}{% endblock %}
-
 </head>
+
 <body>
 
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container-fluid">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="{{ url_for('index') }}">Dazzar</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav navbar-right">
-                {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('user_blueprint.user', steam_id=current_user.id) }}">
-                        {% if current_user.nickname is none %}
-                            {{ current_user.id }}
-                        {% else %}
-                            {{ current_user.nickname }}
-                        {% endif %}
-                    </a></li>
-                    <li><a href="{{ url_for('login_blueprint.logout') }}">Logout</a></li>
+<section class="top-bar">
+
+    <div class="text-right">
+        <ul class="account">
+            {% if current_user.is_authenticated %}
+            <li><img class="avatar" src="{{ current_user.avatar }}"></li>
+            <li>
+                <a href="{{ url_for('user_blueprint.user', steam_id=current_user.id) }}">
+                    {% if current_user.nickname is none %}
+                    {{ current_user.id }}
+                    {% else %}
+                    {{ current_user.nickname }}
+                    {% endif %}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('login_blueprint.logout') }}" data-toggle="tooltip"
+                   data-placement="bottom" title="Logout">
+                    <span class="logout glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                </a>
+            </li>
+            {% else %}
+            <li>
+                <a href="{{ url_for('login_blueprint.login_steam') }}">Login</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <nav class="titles">
+        <ul>
+            {% if request.url_rule.endpoint in ['index'] %}
+            <li class="selected">
                 {% else %}
-                    <li><a href="{{ url_for('login_blueprint.login') }}">Login</a></li>
+            <li>
                 {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
+                <span class="title">
+					<a href="{{ url_for('index') }}">Dazzar</a>
+				</span>
+            </li>
 
-<div class="container">
-    <div class="row">
-        <div class="col-md-2 sidebar">
-            <ul class="nav nav-sidebar">
-                <li class="active"><a href="{{ url_for('index') }}">Index</a></li>
-                <li><a href="{{ url_for('user_blueprint.users') }}">Utilisateurs</a></li>
-            </ul><br />
-            <ul class="nav nav-sidebar">
-                <li><a href="{{ url_for('mix_blueprint.mix_users') }}">Mixeur</a></li>
-            </ul><br />
-            <ul class="nav nav-sidebar">
-                <li><a href="{{ url_for('ladder_blueprint.ladder_play') }}">Ladder</a></li>
-            </ul><br />
-        </div>
+            {% if request.url_rule.endpoint in ['user_blueprint.nickname', 'user_blueprint.users',
+            'user_blueprint.user'] %}
+            <li class="selected">
+                {% else %}
+            <li>
+                {% endif %}
+                <span class="title">
+					<a href="{{ url_for('user_blueprint.users') }}">Utilisateurs</a>
+				</span>
+            </li>
+            <li>
+                <div class="logo">
+                    <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/dazzaricon.png') }}"></a>
+                </div>
+            </li>
 
-        <div class="col-md-10 col-md-offset-2 main">
-            {% block body %}{% endblock %}
-        </div>
+            {% if request.url_rule.endpoint in ['mix_blueprint.mix_edit', 'mix_blueprint.mix_users',
+            'mix_blueprint.mix'] %}
+            <li class="selected">
+                {% else %}
+            <li>
+                {% endif %}
+                <span class="title">
+					<a href="{{ url_for('mix_blueprint.mix_users') }}">Mixeur</a>
+				</span>
+            </li>
 
-    </div>
+            {% if request.url_rule.endpoint in ['ladder_blueprint.ladder_play', 'ladder_blueprint.ladder_scoreboard',
+            'ladder_blueprint.ladder_matches', 'ladder_blueprint.match'] %}
+            <li class="selected">
+                {% else %}
+            <li>
+                {% endif %}
+                <span class="title">
+					<a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Ladder</a>
+				</span>
+            </li>
+        </ul>
+    </nav>
+
+</section>
+
+
+<div class="container body">
+
+    {% block body %}{% endblock %}
 
 </div>
 
 {% block endscripts %}{% endblock %}
 
 </body>
+
 </html>
