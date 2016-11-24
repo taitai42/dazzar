@@ -3,19 +3,20 @@
 <h1 class="page-header">Utilisateurs</h1>
 
 <div class="container">
-    <p>Les utilisateurs peuvent être Admin (A) ou Joueur (J).</p>
+
     <table id="users" class="display cell-border stripe" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <th class="dt-head-center">SteamID</th>
-                <th>Utilisateur</th>
-                <th class="dt-head-center">Permissions</th>
+                <th></th>
+                <th class="dt-head-center">Badges</th>
+                <th class="dt-head-center">Pseudonyme</th>
             </tr>
         </thead>
         <tbody>
 
         </tbody>
     </table>
+
 </div>
 {% endblock %}
 
@@ -26,7 +27,7 @@
             "paging": true,
             "ordering": false,
             "lengthChange": false,
-            "pageLength": 50,
+            "pageLength": 25,
             "info": false,
             "language": {
                 "loadingRecords": "Chargement...",
@@ -41,17 +42,52 @@
                 }
             },
             "processing": true,
-            "searchDelay": 1000,
+            "searchDelay": 300,
             "serverSide": true,
             "ajax": "{{ url_for('user_blueprint.api_users') }}",
             "columnDefs": [
-                { className: "dt-body-center", "width": "200px", "targets": 0 },
-                { className: "dt-body-center", "width": "150px", "targets": 2 }
+                { className: "dt-body-center", "width": "50px", "targets": 0,
+                    "render": function ( data, type, full, meta ) {
+                                  return '<img src="'+full[0]+'">';
+                               }
+                },
+                { className: "dt-body-center", "width": "100px", "targets": 1,
+                    "render": function ( data, type, full, meta ) {
+                                  var html = ''
+                                  html += '<a href="http://steamcommunity.com/profiles/' + full[3]
+                                       + 'data-toggle="tooltip" data-placement="bottom" title="Profil Steam Community"'
+                                       + '"><img class=".img-rounded" src="{{ url_for('static', filename='img/steamicon.png') }}"></a>'
+                                  html += '&nbsp;<a href="http://www.dotabuff.com/players/' + full[3]
+                                       + 'data-toggle="tooltip" data-placement="bottom" title="Profil Dotabuff"'
+                                       + '"><img src="{{ url_for('static', filename='img/dotabufficon.png') }}"></a>'
+                                  if (data['admin']) {
+                                     html += '&nbsp;<img src="{{ url_for('static', filename='img/adminicon.png') }}"'
+                                          + 'data-toggle="tooltip" data-placement="bottom" title="Admin">'
+                                  } else {
+                                     html += '&nbsp;<img src="{{ url_for('static', filename='img/emptyicon.png') }}">'
+                                  }
+                                  if (data['verified']) {
+                                     html += '&nbsp;<img src="{{ url_for('static', filename='img/verifiedicon.png') }}"'
+                                          + 'data-toggle="tooltip" data-placement="bottom" title="Utilisateur Vérifié">'
+                                  } else {
+                                     html += '&nbsp;<img src="{{ url_for('static', filename='img/emptyicon.png') }}">'
+                                  }
+                                  if (data['play_vip']) {
+                                     html += '&nbsp;<img src="{{ url_for('static', filename='img/vipicon.png') }}"'
+                                          + 'data-toggle="tooltip" data-placement="bottom" title="Joueur VIP">'
+                                  } else {
+                                     html += '&nbsp;<img src="{{ url_for('static', filename='img/emptyicon.png') }}">'
+                                  }
+                                  return html;
+                               }
+                },
+                { "targets": 2,
+                    "render": function ( data, type, full, meta ) {
+                                  return '<a href="{{ url_for('user_blueprint.user', steam_id=0) }}' + full[3] + '">'
+                                            + full[2] + '</a>';
+                               }
+                }
             ]
-        });
-
-        $('#users tbody').on( 'click', 'tr', function () {
-            window.location = '{{ url_for('user_blueprint.user', steam_id=0) }}' + $(this).children()[0].textContent;
         });
     } );
 </script>

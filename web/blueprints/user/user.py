@@ -107,7 +107,7 @@ def make_blueprint(job_queue):
             .filter(User.nickname.isnot(None))
 
         if search != '':
-            query = query.filter(User.nickname.like('%' + search + '%'))
+            query = query.filter(User.nickname.ilike('%' + search + '%'))
 
         count = query.count()
 
@@ -116,10 +116,12 @@ def make_blueprint(job_queue):
 
         data = []
         for user in query.all():
-            permissions = ""
-            permissions += "A " if user.has_permission(constants.PERMISSION_ADMIN) else "- "
-            permissions += "J " if user.has_permission(constants.PERMISSION_PLAY_VIP) else "- "
-            data.append([str(user.id), user.nickname, permissions])
+            permissions = {
+                'verified': user.verified,
+                constants.PERMISSION_ADMIN: user.has_permission(constants.PERMISSION_ADMIN),
+                constants.PERMISSION_PLAY_VIP: user.has_permission(constants.PERMISSION_PLAY_VIP)
+            }
+            data.append([user.avatar, permissions, user.nickname, str(user.id)])
         results = {
             "draw": draw,
             "recordsTotal": count,
