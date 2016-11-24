@@ -99,7 +99,7 @@ def make_blueprint(job_queue):
 
         draw = request.args.get('draw', '1')
         search = request.args.get('search[value]', '')
-        length = 50
+        length = 25
         start = int(request.args.get('start', '0'))
 
         query = db.session().query(User)\
