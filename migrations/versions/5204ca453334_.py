@@ -1,4 +1,4 @@
-"""Add index to vip_mmr
+"""3/ Add index to vip_mmr
 
 Revision ID: 5204ca453334
 Revises: d2788e6855d8

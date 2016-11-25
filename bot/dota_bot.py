@@ -1,4 +1,5 @@
 import math
+import random
 import logging
 from threading import Thread
 import gevent
@@ -16,7 +17,6 @@ from web.web_application import create_app
 from common.models import db, User, Match, PlayerInMatch
 from common.job_queue import QueueAdapter, Job, JobType
 import common.constants as constants
-
 
 
 class DotaBotThread(EventEmitter, Thread):
@@ -329,7 +329,7 @@ class DotaBotThread(EventEmitter, Thread):
         self.dota.on(dota2.features.Lobby.EVENT_LOBBY_NEW, self.vip_game_created)
         self.dota.on(dota2.features.Lobby.EVENT_LOBBY_CHANGED, self.game_update)
 
-        self.client.connect(retry=None)
+        self.client.connect(retry=None, delay=random.randint(1, 20))
 
         while True:
             # Get jobs if ready
@@ -341,4 +341,4 @@ class DotaBotThread(EventEmitter, Thread):
                     self.current_job = pickle.loads(message)
                     self.dota.emit('new_job')
 
-            gevent.sleep(30)
+            gevent.sleep(20 + random.randint(0, 10))
