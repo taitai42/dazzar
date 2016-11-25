@@ -22,31 +22,38 @@
             {% elif match.status == 4 %}La partie est terminée.
             {% endif %}
         </li>
-        {% if current_user.is_authenticated and (current_user.has_permission('admin') or current_user in match.players) %}
-            <li>Mot de passe du match "{{ match.password }}" (si vous ne recevez pas l'invitation du bot)</li>
+        {%if match.server is not none %}
+        <li>Pour observer, utilisez cette commande dans la console: watch_server "{{ match.server }}"</li>
+        {% endif %}
+        {% if current_user.is_authenticated %}
+            {% for player in match.players %}
+                {% if current_user.id == player.player_id %}
+                    <li>Mot de passe du match "{{ match.password }}" (si vous ne recevez pas l'invitation du bot)</li>
+                {% endif %}
+            {% endfor %}
         {% endif %}
     </ul>
 
-    <p>Veuillez bien respecter votre team/slot sous peine d'être kick par le bot.</p>
+    <p>Notes: Respectez les teams/slots pour ne pas être kick. Un meilleur slot a la priorité du pick/lane.</p>
 
     <table id="players" class="display" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <th>Pseudo</th>
-                <th>Team</th>
-                <th>Slot</th>
-                <th>vMMR</th>
-                <th>vMMR+</th>
+                <th class="dt-head-center">Pseudo</th>
+                <th class="dt-head-center">Team</th>
+                <th class="dt-head-center">Slot</th>
+                <th class="dt-head-center">vMMR</th>
+                <th class="dt-head-center">vMMR+</th>
             </tr>
         </thead>
         <tbody>
             {% for player in match.players %}
             <tr>
                 <td><a href="{{ url_for('user_blueprint.user', steam_id=player.player_id) }}">{{ player.player.nickname }}</a></td>
-                <td>{% if player.is_radiant %}Radiant{% else %}Dire {% endif %}</td>
-                <td>{{ player.team_slot }}</td>
-                <td>{{ player.mmr_before }}</td>
-                <td>{% if player.mmr_after is not none %}{{ player.mmr_after }}{% endif %}</td>
+                <td class="dt-body-center">{% if player.is_radiant %}Radiant{% else %}Dire {% endif %}</td>
+                <td class="dt-body-center">{{ player.team_slot }}</td>
+                <td class="dt-body-center">{{ player.mmr_before }}</td>
+                <td class="dt-body-center">{% if player.mmr_after is not none %}{{ player.mmr_after }}{% endif %}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -59,7 +66,7 @@
     $(document).ready(function() {
         $('#players').DataTable({
             "paging": false,
-            "ordering": false,
+            "ordering": true,
             "lengthChange": false,
             "searching": false,
             "pageLength": 20,
@@ -67,10 +74,10 @@
             "language": {
                 "emptyTable": "Aucun résultat."
             },
+            "order": [[ 1, "desc"], [2, "asc"]],
             "columnDefs": [
-            {
-                "orderData": [ 1, 2 ]
-            }]
+                { "targets": [0, 3, 4], "orderable": false }
+            ],
         });
     });
 </script>

@@ -193,11 +193,12 @@ class DotaBotThread(EventEmitter, Thread):
                     # Say: Joueurs manquants self.missing_players
                     # Say: Joueurs dans les mauvaises équipes self.wrong_team_players
                     # Say: Temps restant avant lancement: self.invite_timer
-                    logging.error('Missing players %s', self.missing_players)
-                    logging.error('Wrong team players %s', self.wrong_team_players)
+                    # logging.error('Missing players %s', self.missing_players)
+                    # logging.error('Wrong team players %s', self.wrong_team_players)
                     self.invite_timer = self.invite_timer - timedelta(seconds=refresh_rate)
 
             if not start:
+                logging.info('Game %s cancelled because of dodge.' % self.current_job.match_id)
                 # Say: Partie annulée - punish
                 with self.app.app_context():
                     match = Match.query.filter_by(id=self.current_job.match_id).first()
@@ -216,13 +217,19 @@ class DotaBotThread(EventEmitter, Thread):
                     db.session.commit()
                 self.dota.leave_practice_lobby()
             else:
+                logging.info('Launching game %s' % self.current_job.match_id)
                 # Start the game and manage status
                 self.dota.launch_practice_lobby()
+                gevent.sleep(10)
                 with self.app.app_context():
                     match = Match.query.filter_by(id=self.current_job.match_id).first()
                     match.status = constants.MATCH_STATUS_IN_PROGRESS
+                    if self.game_status.connect is not None and self.game_status.connect[0:1] == '=[':
+                        match.server = self.game_status.connect[2:-1]
+                    elif self.game_status.server_id is not None:
+                        match.server = self.game_status.server_id
                     db.session.commit()
-                gevent.sleep(30)
+                gevent.sleep(10)
 
                 # PostGame = 3 & UI = 0 (means no loading)
                 while self.game_status.state != 0 and self.game_status.state != 3:
@@ -231,6 +238,7 @@ class DotaBotThread(EventEmitter, Thread):
                 with self.app.app_context():
                     match = Match.query.filter_by(id=self.current_job.match_id).first()
                     if self.game_status.state == 0:
+                        logging.info('Game %s cancelled because of no load.' % self.current_job.match_id)
                         # state UI = 0, punish not loaded
                         match.status = constants.MATCH_STATUS_CANCELLED
                         self.compute_missing_players()
@@ -245,7 +253,9 @@ class DotaBotThread(EventEmitter, Thread):
                                 player.mmr_after = max(player.mmr_before - 150, 0)
                     elif self.game_status.state == 3:
                         # state POSTGAME = 3, report result and leavers
+                        logging.info('Game %s over.' % self.current_job.match_id)
                         match.status = constants.MATCH_STATUS_ENDED
+                        match.server = None
 
                         self.players = {}
                         for player in PlayerInMatch.query. \

@@ -241,6 +241,7 @@ class Match(db.Model):
     status = db.Column(db.Integer, index=True, nullable=False)
     created = db.Column(db.DateTime, index=True, nullable=False)
     password = db.Column(db.String(20), nullable=False)
+    server = db.Column(db.String, nullable=True)
 
     players = db.relationship('PlayerInMatch', back_populates='match')
 
@@ -248,6 +249,7 @@ class Match(db.Model):
         self.created = datetime.now()
         self.status = constants.MATCH_STATUS_CREATION
         self.password = 'dz_'
+        self.server = None
         for i in range(0,4):
             self.password += random.choice(string.ascii_lowercase + string.digits)
         is_radiant = True
