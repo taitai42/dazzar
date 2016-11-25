@@ -1,9 +1,9 @@
 {% extends "ladder_layout.html" %}
 
 {% block ladderbody %}
-<h2>Dazzar Game {{ match.id }}</h2>
 
-<div class="container">
+    <h2>Dazzar Game {{ match.id }}</h2>
+
     {% if current_user.is_authenticated
         and current_user.has_permission("admin")
         and match.status != 2
@@ -52,7 +52,6 @@
         </tbody>
     </table>
 
-</div>
 {% endblock %}
 
 {% block endscripts %}

@@ -1,16 +1,17 @@
-{% extends "layout.html" %}
-{% block body %}
-<h1 class="page-header">Pseudo</h1>
+{% extends "user_layout.html" %}
+{% block userbody %}
 
-<div class="container">
-    <p>Vous n'avez pas encore de pseudo sur Dazzar. Vous devez en choisir un (unique) pour être reconnu sur la plateforme.<br />
-        <form>
-            Choisissez votre pseudo <input type="text" name="nickname">
-            {% if error != '' %}
-            <p class="text-danger">{{ error }}</p>
-            {% endif %}
-            <input type="submit" formmethod="post" formaction="{{ url_for('user_blueprint.nickname') }}" value="Valider">
-        </form>
-    </p>
-</div>
+    <h1 class="page-header">Pseudo</h1>
+
+    <p>Vous n'avez pas encore de pseudo sur Dazzar. Vous devez en choisir un (unique) pour être reconnu sur la plateforme.</p>
+
+    <form>
+        Choisissez votre pseudo <input type="text" name="nickname">
+        {% if error != '' %}
+        <p class="text-danger">{{ error }}</p>
+        {% endif %}
+        <input type="submit" formmethod="post" formaction="{{ url_for('user_blueprint.nickname') }}" value="Valider">
+    </form>
+
+
 {% endblock %}

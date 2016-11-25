@@ -42,7 +42,7 @@ class User(db.Model):
 
     current_match = db.Column(db.Integer, db.ForeignKey('match.id'))
     solo_mmr = db.Column(db.Integer(), nullable=True)
-    vip_mmr = db.Column(db.Integer(), nullable=True)
+    vip_mmr = db.Column(db.Integer(), nullable=True, index=True)
 
     user_permission = db.relationship('UserPermission', secondary=permissions, lazy='dynamic', backref=db.backref('users', lazy='dynamic'))
     user_mix_detail = db.relationship("UserMixDetail", uselist=False, backref=db.backref('user', uselist=False))

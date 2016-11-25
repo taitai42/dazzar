@@ -6,23 +6,23 @@
 
     <nav class="sub-titles">
         <ul>
-            {% if request.url_rule.endpoint in ['mix_blueprint.mix_users'] %}
+            {% if request.url_rule.endpoint in ['user_blueprint.users'] %}
             <li class="selected">
             {% else %}
             <li>
             {% endif %}
                 <span class="sub-title">
-					<a href="{{ url_for('mix_blueprint.mix_users') }}">Album</a>
+					<a href="{{ url_for('user_blueprint.users') }}">La Mare</a>
 				</span>
             </li>
 
-            {% if request.url_rule.endpoint in ['mix_blueprint.mix_edit'] %}
+            {% if request.url_rule.endpoint in ['user_blueprint.user_profile'] %}
             <li class="selected">
             {% else %}
             <li>
             {% endif %}
                 <span class="sub-title">
-					<a href="{{ url_for('mix_blueprint.mix_edit') }}">Mon Annonce</a>
+					<a href="{{ url_for('user_blueprint.user_profile') }}">Mon Profil</a>
 				</span>
             </li>
         </ul>
@@ -32,7 +32,7 @@
 
 <div class="container sub-body">
 
-    {% block mixbody %}{% endblock %}
+    {% block userbody %}{% endblock %}
 
 </div>
 {% endblock %}

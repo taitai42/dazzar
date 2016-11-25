@@ -58,6 +58,37 @@ def make_blueprint(job_queue):
         """Displays the league scoreboard."""
         return render_template('ladder_scoreboard.html')
 
+    @ladder_blueprint.route('/api/scoreboard')
+    def api_scoreboard():
+        """Endpoint for the datatable to request user score."""
+
+        draw = request.args.get('draw', '1')
+        length = int(request.args.get('length', '20'))
+        start = int(request.args.get('start', '0'))
+
+        query = db.session().query(User)\
+            .filter(User.nickname.isnot(None))\
+            .filter(User.vip_mmr != None)\
+            .order_by(User.vip_mmr.desc())
+
+        count = query.count()
+
+        query = query.offset(start)\
+            .limit(length)
+
+        data = []
+        place = start
+        for user in query.all():
+            place += 1
+            data.append([user.avatar, place, user.nickname, str(user.id), user.vip_mmr, user.solo_mmr])
+        results = {
+            "draw": draw,
+            "recordsTotal": count,
+            "recordsFiltered": count,
+            "data": data
+        }
+        return jsonify(results)
+
     @ladder_blueprint.route('/ladder/matches')
     def ladder_matches():
         """Displays the league matches."""
@@ -68,7 +99,7 @@ def make_blueprint(job_queue):
         """Endpoint for the datatable to request matches."""
 
         draw = request.args.get('draw', '1')
-        length = 20
+        length = int(request.args.get('length', '20'))
         start = int(request.args.get('start', '0'))
 
         query = Match.query \

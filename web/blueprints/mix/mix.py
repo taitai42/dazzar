@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 import logging
 
 from flask import Blueprint, jsonify, request, url_for, redirect, render_template
-from flask_login import current_user
+from flask_login import current_user, login_required
+
 
 from common.models import db, UserMixDetail
 
@@ -26,6 +27,7 @@ def make_blueprint():
         return render_template('mix_details.html', mix=mix_requested)
 
     @mix_blueprint.route('/mix/edit', methods=['GET', 'POST'])
+    @login_required
     def mix_edit():
         mix_requested = current_user.user_mix_detail
 

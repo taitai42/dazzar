@@ -99,7 +99,7 @@ def make_blueprint(job_queue):
 
         draw = request.args.get('draw', '1')
         search = request.args.get('search[value]', '')
-        length = 25
+        length = int(request.args.get('length', '20'))
         start = int(request.args.get('start', '0'))
 
         query = db.session().query(User)\
@@ -142,11 +142,21 @@ def make_blueprint(job_queue):
             abort(404)
         if current_user.is_authenticated and current_user.id == user_requested.id and \
             (current_user.profile_scan_info is None or
-            datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(minutes=5)):
+                datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(minutes=5)):
             scan_possible = True
         else:
             scan_possible = False
         return render_template('user_details.html', user=user_requested, scan_possible=scan_possible)
+
+    @user_blueprint.route('/user/profile')
+    @login_required
+    def user_profile():
+        if (current_user.profile_scan_info is None or
+                datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(minutes=5)):
+            scan_possible = True
+        else:
+            scan_possible = False
+        return render_template('user_details.html', user=current_user, scan_possible=scan_possible)
 
     @user_blueprint.route('/permission/<int:steam_id>/<string:permission>/<string:give>')
     @login_required

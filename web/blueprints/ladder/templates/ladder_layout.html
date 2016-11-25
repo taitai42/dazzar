@@ -2,12 +2,47 @@
 
 {% block body %}
 
-<h1 class="page-header">Ladder</h1>
+<section class="sub-top-bar">
 
-<div class="container">
-    <a href="{{ url_for('ladder_blueprint.ladder_play') }}">Jouer</a> - <a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Liste des Matchs</a>
+    <nav class="sub-titles">
+        <ul>
+            {% if request.url_rule.endpoint in ['ladder_blueprint.ladder_scoreboard'] %}
+            <li class="selected">
+            {% else %}
+            <li>
+            {% endif %}
+                <span class="sub-title">
+					<a href="{{ url_for('ladder_blueprint.ladder_scoreboard') }}">Scoreboard</a>
+				</span>
+            </li>
+
+            {% if request.url_rule.endpoint in ['ladder_blueprint.ladder_play'] %}
+            <li class="selected">
+            {% else %}
+            <li>
+            {% endif %}
+                <span class="sub-title">
+					<a href="{{ url_for('ladder_blueprint.ladder_play') }}">Jouer</a>
+				</span>
+            </li>
+
+            {% if request.url_rule.endpoint in ['ladder_blueprint.ladder_matches'] %}
+            <li class="selected">
+            {% else %}
+            <li>
+            {% endif %}
+                <span class="sub-title">
+					<a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Les Matchs</a>
+				</span>
+            </li>
+        </ul>
+    </nav>
+
+</section>
+
+<div class="container sub-body">
+
+    {% block ladderbody %}{% endblock %}
+
 </div>
-
-{% block ladderbody %}{% endblock %}
-
 {% endblock %}

@@ -1,25 +1,21 @@
 {% extends "mix_layout.html" %}
 {% block mixbody %}
-<h2>Ma Recherche de joueur/team</h2>
 
-<div class="container">
-    <p>
-        <form>
-            {% if mix is none or not mix.enabled %}
-            <input name="add" type="submit" formmethod="post" formaction="{{ url_for('mix_blueprint.mix_edit') }}" value="Activer">
-            {% elif mix.enabled %}
-            <input name="add" type="submit" formmethod="post" formaction="{{ url_for('mix_blueprint.mix_edit') }}" value="Rafraichir">
-            <input name="delete" type="submit" formmethod="post" formaction="{{ url_for('mix_blueprint.mix_edit') }}" value="Supprimer">
-            {% endif %}
+    <form>
+        {% if mix is none or not mix.enabled %}
+        <input name="add" type="submit" formmethod="post" formaction="{{ url_for('mix_blueprint.mix_edit') }}" value="Activer">
+        {% elif mix.enabled %}
+        <input name="add" type="submit" formmethod="post" formaction="{{ url_for('mix_blueprint.mix_edit') }}" value="Rafraichir">
+        <input name="delete" type="submit" formmethod="post" formaction="{{ url_for('mix_blueprint.mix_edit') }}" value="Supprimer">
+        {% endif %}
 
-            <br />
+        <br />
 
-            Titre: <input type="text" name="title" value="{{ mix.title }}"><br />
-            Objectif (BattleCup, FroggedTVCup, TI): <input type="text" name="goal" value="{{ mix.goal }}"><br />
-            Niveau (MMR): <input type="text" name="level" value="{{ mix.level }}"><br />
-            Description (Markdown): <br />
-            <textarea name="description" rows="4" cols="50">{{ mix.description }}</textarea><br />
-        </form>
-    </p>
-</div>
+        Titre: <input type="text" name="title" value="{{ mix.title }}"><br />
+        Objectif (BattleCup, FroggedTVCup, TI): <input type="text" name="goal" value="{{ mix.goal }}"><br />
+        Niveau (MMR): <input type="text" name="level" value="{{ mix.level }}"><br />
+        Description (Markdown): <br />
+        <textarea name="description" rows="4" cols="50">{{ mix.description }}</textarea><br />
+    </form>
+
 {% endblock %}

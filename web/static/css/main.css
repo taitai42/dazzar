@@ -1,8 +1,14 @@
 @import url(https://fonts.googleapis.com/css?family=Montserrat);
 
 .body {
-  padding-top: 60px;
+    padding-top: 60px;
 }
+
+.sub-body {
+    padding-top: 120px;
+}
+
+/* Top bar */
 
 .top-bar {
 	position: fixed;
@@ -73,6 +79,8 @@
 }
 
 .account {
+    position:absolute;
+    right:0;
 	font-size: 15px;
 	height: 100%;
 	display: flex;
@@ -97,4 +105,67 @@
 .account .logout {
     color: black;
     padding-top: 5px;
+}
+
+/* Sub bar */
+.sub-top-bar {
+    margin-top: 45px;
+	position: fixed;
+	font-family: 'Montserrat';
+    z-index: 15;
+	height: 60px;
+    text-align:center;
+    width:100%;
+    max-width:100%;
+}
+
+.sub-titles {
+	display: inline-block;
+	height: 100%;
+}
+
+.sub-titles ul {
+    vertical-align: middle;
+	list-style:none;
+	height: 100%;
+	padding-top: 20px;
+	padding-left: 15px;
+	padding-right: 15px;
+	box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.24), 0 1.5px 6px rgba(0, 0, 0, 0.12);
+	border-radius: 5px;
+	background: rgba(243, 243, 243, 1);
+}
+
+.sub-titles li {
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+	height: 100%;
+	margin-left: 15px;
+	margin-right: 15px;
+	font-size: 16px;
+    border-bottom: 5px solid rgba(255, 255, 255, 0);
+}
+
+.sub-title {
+    display: flex;
+	align-items: center;
+	height: 100%;
+}
+
+
+.sub-titles li.selected {
+    border-bottom: 5px solid #777777;
+}
+
+.sub-titles a {
+	color: #AAAAAA;
+}
+
+.sub-titles li.selected a{
+	color: #777777;
+}
+
+.sub-titles a:hover {
+	text-decoration: none;
 }

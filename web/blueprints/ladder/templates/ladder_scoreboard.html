@@ -1,8 +1,86 @@
-{% extends "layout.html" %}
-{% block body %}
-<h1 class="page-header">Tableau des scores du Ladder</h1>
+{% extends "ladder_layout.html" %}
+{% block ladderbody %}
 
-<div class="container">
-    <p>Le ladder n'est pas encore ouvert.</p>
-</div>
+    <table id="users" class="display cell-border stripe" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th></th>
+                <th class="dt-head-center">vMMR</th>
+                <th class="dt-head-center">MMR</th>
+                <th></th>
+                <th class="dt-head-center">Pseudonyme</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+{% endblock %}
+
+{% block endscripts %}
+<script>
+    $(document).ready(function() {
+        $('#users').DataTable({
+            "paging": true,
+            "ordering": false,
+            "lengthChange": false,
+            "searching": false,
+            "pageLength": 20,
+            "info": false,
+            "language": {
+                "loadingRecords": "Chargement...",
+                "processing": "Chargement...",
+                "emptyTable": "Aucun résultat.",
+                "search": "Rechercher:",
+                "paginate": {
+                    "first":      "Premier",
+                    "last":       "Dernier",
+                    "next":       "Suivant",
+                    "previous":   "Précédent"
+                }
+            },
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{{ url_for('ladder_blueprint.api_scoreboard') }}",
+            "columnDefs": [
+                { className: "dt-body-center", "width": "30px", "targets": 0,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[1];
+                               }
+                },
+                { className: "dt-body-center", "width": "50px", "targets": 1,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[4];
+                               }
+                },
+                { className: "dt-body-center", "width": "50px", "targets": 2,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[5];
+                               }
+                },
+                { className: "dt-body-center", "width": "40px", "targets": 3,
+                    "render": function ( data, type, full, meta ) {
+                                  var html = '<img src="'+full[0]+'">'
+                                  return html;
+                               }
+                },
+                { "targets": 4,
+                    "render": function ( data, type, full, meta ) {
+                                  var html = ''
+                                  html += '<a href="http://steamcommunity.com/profiles/' + full[3]
+                                       + '" data-toggle="tooltip" data-placement="bottom" title="Profil Steam Community"'
+                                       + '><img class=".img-rounded" src="{{ url_for('static', filename='img/steamicon.png') }}"></a>'
+                                  html += '&nbsp;<a href="http://www.dotabuff.com/players/' + full[3]
+                                       + '" data-toggle="tooltip" data-placement="bottom" title="Profil Dotabuff"'
+                                       + '><img src="{{ url_for('static', filename='img/dotabufficon.png') }}"></a>'
+                                  html += '&nbsp;&nbsp;<a href="{{ url_for('user_blueprint.user', steam_id=0) }}' + full[3] + '">'
+                                            + full[2] + '</a>';
+                                  return html;
+                               }
+                }
+            ]
+        });
+    } );
+</script>
 {% endblock %}

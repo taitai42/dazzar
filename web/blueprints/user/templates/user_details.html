@@ -1,8 +1,6 @@
-{% extends "layout.html" %}
-{% block body %}
-<h1 class="page-header">Détails de l'Utilisateur</h1>
+{% extends "user_layout.html" %}
+{% block userbody %}
 
-<div class="container">
     <ul>
         <li>Pseudo: {{ user.nickname }}</li>
         {% if current_user.is_authenticated and current_user.has_permission("admin") %}
@@ -76,5 +74,4 @@
     </p>
     {% endif %}
 
-</div>
 {% endblock %}

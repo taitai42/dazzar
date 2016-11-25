@@ -39,11 +39,11 @@
             {% if current_user.is_authenticated %}
             <li><img class="avatar" src="{{ current_user.avatar }}"></li>
             <li>
-                <a href="{{ url_for('user_blueprint.user', steam_id=current_user.id) }}">
+                <a href="{{ url_for('user_blueprint.user_profile') }}">
                     {% if current_user.nickname is none %}
-                    {{ current_user.id }}
+                        {{ current_user.id }}
                     {% else %}
-                    {{ current_user.nickname }}
+                        {{ current_user.nickname }}
                     {% endif %}
                 </a>
             </li>
@@ -63,26 +63,28 @@
 
     <nav class="titles">
         <ul>
+
             {% if request.url_rule.endpoint in ['index'] %}
             <li class="selected">
-                {% else %}
+            {% else %}
             <li>
-                {% endif %}
+            {% endif %}
                 <span class="title">
 					<a href="{{ url_for('index') }}">Dazzar</a>
 				</span>
             </li>
 
             {% if request.url_rule.endpoint in ['user_blueprint.nickname', 'user_blueprint.users',
-            'user_blueprint.user'] %}
+                'user_blueprint.user'] %}
             <li class="selected">
-                {% else %}
+            {% else %}
             <li>
-                {% endif %}
+            {% endif %}
                 <span class="title">
-					<a href="{{ url_for('user_blueprint.users') }}">Utilisateurs</a>
+					<a href="{{ url_for('user_blueprint.users') }}">Joueurs</a>
 				</span>
             </li>
+
             <li>
                 <div class="logo">
                     <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/dazzaricon.png') }}"></a>
@@ -92,22 +94,22 @@
             {% if request.url_rule.endpoint in ['mix_blueprint.mix_edit', 'mix_blueprint.mix_users',
             'mix_blueprint.mix'] %}
             <li class="selected">
-                {% else %}
+            {% else %}
             <li>
-                {% endif %}
+            {% endif %}
                 <span class="title">
 					<a href="{{ url_for('mix_blueprint.mix_users') }}">Mixeur</a>
 				</span>
             </li>
 
             {% if request.url_rule.endpoint in ['ladder_blueprint.ladder_play', 'ladder_blueprint.ladder_scoreboard',
-            'ladder_blueprint.ladder_matches', 'ladder_blueprint.match'] %}
+                'ladder_blueprint.ladder_matches', 'ladder_blueprint.match'] %}
             <li class="selected">
-                {% else %}
+            {% else %}
             <li>
-                {% endif %}
+            {% endif %}
                 <span class="title">
-					<a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Ladder</a>
+					<a href="{{ url_for('ladder_blueprint.ladder_scoreboard') }}">Ladder</a>
 				</span>
             </li>
         </ul>
@@ -115,12 +117,7 @@
 
 </section>
 
-
-<div class="container body">
-
-    {% block body %}{% endblock %}
-
-</div>
+{% block body %}{% endblock %}
 
 {% block endscripts %}{% endblock %}
 
