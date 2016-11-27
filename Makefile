@@ -46,11 +46,11 @@ all-stop:
 
 # start all
 all-start:
-	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build
+	CFG=../common/cfg/settings.cfg docker-compose -p dazzar -f docker/docker-compose.yml up -d --build
 
 # start web prod
 web-start:
-	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_web
+	CFG=../common/cfg/settings.cfg docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_web
 
 # start web prod
 web-stop:
@@ -59,11 +59,11 @@ web-stop:
 
 # start web dev
 web-run:
-	docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_web
+	CFG=../common/cfg/settings-dev.cfg docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_web
 
 # start bot prod
 bot-start:
-	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_bot
+	CFG=../common/cfg/settings.cfg docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_bot
 
 # stop bot prod
 bot-stop:
@@ -72,12 +72,12 @@ bot-stop:
 
 # start bot dev
 bot-run:
-	docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_bot
+	CFG=../common/cfg/settings-dev.cfg docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_bot
 
 # scripts
 SCRIPT?=make_admin -i 76561197961298382
 script: build
-	docker run --rm --name dazzar_script --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar dazzar_web python3 /dazzar/common/scripts.py $(SCRIPT)
+	CFG=../common/cfg/settings.cfg docker run --rm --name dazzar_script --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar dazzar_web python3 /dazzar/common/scripts.py $(SCRIPT)
 
 # build
 build:

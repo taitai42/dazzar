@@ -38,6 +38,8 @@ services:
       dockerfile: docker/dazzar/Dockerfile
     ports:
       - "9004:8000"
+    environment:
+      - CFG
     entrypoint: python3 /dazzar/web/web_application.py
     network_mode: "bridge"
     external_links:
@@ -55,6 +57,8 @@ services:
       dockerfile: docker/dazzar/Dockerfile
     depends_on:
       - dazzar_postgres
+    environment:
+      - CFG
     entrypoint: python3 /dazzar/bot/bot_application.py
     network_mode: "bridge"
     external_links:

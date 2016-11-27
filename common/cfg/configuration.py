@@ -13,6 +13,13 @@ class Config(object):
     TESTING = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DATABASE_URI = 'sqlite://:memory:'
+    RABBITMQ_LOGIN = 'dazzar'
+    RABBITMQ_PASSWORD = 'guest'
+    STEAM_KEY = 'toto'
+    STEAM_BOT_COUNT = 1
+    STEAM_BOT0_LOGIN = 'login'
+    STEAM_BOT0_PASSWORD = 'password'
+    VIP_LADDER_OPEN = False
 
 
 def load_config(config):
@@ -21,11 +28,10 @@ def load_config(config):
     Loads settings.cfg if exists and readable.
 
     Attributes:
-        app - Application to load into
+        config - Application config object to load into
     """
-    config.from_object('common.configuration.Config')
-    if isfile(os.path.join(os.path.dirname(__file__), 'settings.cfg')):
-        try:
-            config.from_pyfile(os.path.join(os.path.dirname(__file__), 'settings.cfg'))
-        except SyntaxError:
-            logging.log(logging.ERROR, 'Impossible to interpret settings file, using default.')
+    config.from_object('common.cfg.configuration.Config')
+    try:
+        config.from_envvar('CFG', silent=True)
+    except SyntaxError:
+        logging.log(logging.ERROR, 'Impossible to interpret settings file, using default.')

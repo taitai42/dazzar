@@ -2,18 +2,15 @@
 # Application Setup #
 #####################
 
-import logging
-from datetime import timedelta
-
 from flask import Flask, render_template
-from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from flask_openid import OpenID
 from flaskext.markdown import Markdown
 
-from common.models import db
+from common.cfg.configuration import load_config
 from common.job_queue import QueueAdapter
-from common.configuration import load_config
+from common.models import db
 
 
 def create_app():
