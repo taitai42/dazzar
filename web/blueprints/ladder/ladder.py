@@ -1,11 +1,14 @@
 import re
 import logging
 import pickle
+from datetime import datetime, timezone, timedelta
+import pytz
 
+from common.helpers import _jinja2_filter_french_date
 from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
-from common.models import db, User, QueuedPlayer, Match, PlayerInMatch
+from common.models import db, User, QueuedPlayer, Match, PlayerInMatch, Scoreboard
 from common.job_queue import Job, JobType
 import common.constants as constants
 
@@ -18,26 +21,22 @@ def make_blueprint(job_queue):
     @login_required
     def ladder_play():
         """Page to enter the league queue.
-        Display the queue and enter/quit if user can play."""
+        Display the queue status and enter/quit if user can play."""
         if current_user.current_match is not None:
             return redirect(url_for('ladder_blueprint.match', match_id=current_user.current_match))
 
         in_queue = False
-        current_queue = []
+        current_queues = {constants.LADDER_HIGH: 0, constants.LADDER_LOW: 0, constants.LADDER_MEDIUM: 0}
         is_open = current_app.config['VIP_LADDER_OPEN']
 
         if is_open:
-            if current_user.has_permission(constants.PERMISSION_PLAY_VIP):
-                if QueuedPlayer.query.filter_by(id=current_user.id, queue_name=constants.QUEUE_NAME_VIP).first() is not None:
-                    in_queue = True
+            if QueuedPlayer.query.filter_by(id=current_user.id).first() is not None:
+                in_queue = True
 
-            for user, queued_player in db.session().query(User, QueuedPlayer).\
-                    filter(User.id == QueuedPlayer.id).\
-                    filter(QueuedPlayer.queue_name == constants.QUEUE_NAME_VIP).\
-                    order_by(QueuedPlayer.added).limit(10).all():
-                current_queue.append(user)
+            for key, value in current_queues.items():
+                current_queues[key] = QueuedPlayer.query.filter(QueuedPlayer.queue_name == key).limit(10).count()
 
-        return render_template('ladder_play.html', is_open=is_open, current_queue=current_queue, in_queue=in_queue)
+        return render_template('ladder_play.html', is_open=is_open, current_queues=current_queues, in_queue=in_queue)
 
     @ladder_blueprint.route('/ladder/open')
     @login_required
@@ -45,7 +44,6 @@ def make_blueprint(job_queue):
         """Open or close the ladder."""
         if current_user.has_permission('admin'):
             for user in QueuedPlayer.query\
-                    .filter_by(queue_name=constants.QUEUE_NAME_VIP)\
                     .all():
                 db.session.delete(user)
             db.session.commit()
@@ -53,23 +51,27 @@ def make_blueprint(job_queue):
 
         return redirect(url_for('ladder_blueprint.ladder_play'))
 
-    @ladder_blueprint.route('/ladder/scoreboard')
-    def ladder_scoreboard():
+    @ladder_blueprint.route('/ladder/scoreboard/<string:ladder>')
+    def ladder_scoreboard(ladder):
         """Displays the league scoreboard."""
-        return render_template('ladder_scoreboard.html')
+        return render_template('ladder_scoreboard.html', ladder=ladder)
 
-    @ladder_blueprint.route('/api/scoreboard')
-    def api_scoreboard():
+    @ladder_blueprint.route('/api/scoreboard/<string:ladder>')
+    def api_scoreboard(ladder):
         """Endpoint for the datatable to request user score."""
 
         draw = request.args.get('draw', '1')
         length = int(request.args.get('length', '20'))
         start = int(request.args.get('start', '0'))
+        if ladder not in [constants.LADDER_HIGH, constants.LADDER_LOW, constants.LADDER_MEDIUM]:
+            ladder = constants.LADDER_HIGH
 
-        query = db.session().query(User)\
+        query = db.session().query(User, Scoreboard)\
+            .filter(User.id == Scoreboard.user_id)\
+            .filter(Scoreboard.ladder_name == ladder)\
+            .filter(Scoreboard.matches != 0)\
             .filter(User.nickname.isnot(None))\
-            .filter(User.vip_mmr != None)\
-            .order_by(User.vip_mmr.desc())
+            .order_by(Scoreboard.mmr.desc())
 
         count = query.count()
 
@@ -78,9 +80,10 @@ def make_blueprint(job_queue):
 
         data = []
         place = start
-        for user in query.all():
+        for user, scoreboard in query.all():
             place += 1
-            data.append([user.avatar, place, user.nickname, str(user.id), user.vip_mmr, user.solo_mmr])
+            data.append([user.avatar, place, user.nickname, str(user.id), scoreboard.mmr, user.solo_mmr,
+                         scoreboard.matches, scoreboard.win, scoreboard.loss, scoreboard.dodge, scoreboard.leave])
         results = {
             "draw": draw,
             "recordsTotal": count,
@@ -112,7 +115,7 @@ def make_blueprint(job_queue):
 
         data = []
         for match in query.all():
-            data.append([match.id, match.created, match.status])
+            data.append([match.id, match.section, match.status, _jinja2_filter_french_date(match.created)])
         results = {
             "draw": draw,
             "recordsTotal": count,
@@ -135,25 +138,25 @@ def make_blueprint(job_queue):
     @login_required
     def queue():
         """Queue or dequeue current user."""
-        if current_user.has_permission(constants.PERMISSION_PLAY_VIP) and current_user.current_match is None:
-            remove_queue = QueuedPlayer.query.filter_by(id=current_user.id, queue_name=constants.QUEUE_NAME_VIP).first()
+        if current_user.current_match is None and current_user.section is not None:
+            remove_queue = QueuedPlayer.query.filter_by(id=current_user.id).first()
             if remove_queue is not None:
                 db.session().delete(remove_queue)
                 db.session().commit()
             else:
-                new_queue = QueuedPlayer(current_user.id, constants.QUEUE_NAME_VIP)
+                new_queue = QueuedPlayer(current_user.id, current_user.section)
                 db.session().add(new_queue)
                 db.session().commit()
                 
-                query = QueuedPlayer.query.filter_by(queue_name=constants.QUEUE_NAME_VIP)\
+                query = QueuedPlayer.query.filter_by(queue_name=current_user.section)\
                     .order_by(QueuedPlayer.added).limit(10)
-                if query.count() >= 10:
+                if query.count() >= 1:
                     # Create a game
                     players = []
                     for player in query.all():
                         players.append(player.id)
                         db.session().delete(player)
-                    new_match = Match(players)
+                    new_match = Match(players, current_user.section)
                     db.session().add(new_match)
                     db.session().commit()
                     for player in new_match.players:

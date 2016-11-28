@@ -7,6 +7,8 @@
                 <th></th>
                 <th class="dt-head-center">Badges</th>
                 <th class="dt-head-center">Pseudonyme</th>
+                <th class="dt-head-center">MMR</th>
+                <th class="dt-head-center">Ladder</th>
             </tr>
         </thead>
         <tbody>
@@ -47,15 +49,15 @@
                                   return '<img src="'+full[0]+'">';
                                }
                 },
-                { className: "dt-body-center", "width": "100px", "targets": 1,
+                { className: "dt-body-center", "width": "80px", "targets": 1,
                     "render": function ( data, type, full, meta ) {
                                   var html = ''
                                   html += '<a href="http://steamcommunity.com/profiles/' + full[3]
                                        + '" data-toggle="tooltip" data-placement="bottom" title="Profil Steam Community"'
-                                       + '><img class=".img-rounded" src="{{ url_for('static', filename='img/steamicon.png') }}"></a>'
+                                       + '><img class="img-rounded" src="{{ url_for('static', filename='img/steamicon.png') }}"></a>'
                                   html += '&nbsp;<a href="http://www.dotabuff.com/players/' + full[3]
                                        + '" data-toggle="tooltip" data-placement="bottom" title="Profil Dotabuff"'
-                                       + '><img src="{{ url_for('static', filename='img/dotabufficon.png') }}"></a>'
+                                       + '><img class="img-rounded" src="{{ url_for('static', filename='img/dotabufficon.png') }}"></a>'
                                   if (data['admin']) {
                                      html += '&nbsp;<img src="{{ url_for('static', filename='img/adminicon.png') }}"'
                                           + ' data-toggle="tooltip" data-placement="bottom" title="Admin">'
@@ -68,12 +70,6 @@
                                   } else {
                                      html += '&nbsp;<img src="{{ url_for('static', filename='img/emptyicon.png') }}">'
                                   }
-                                  if (data['play_vip']) {
-                                     html += '&nbsp;<img src="{{ url_for('static', filename='img/vipicon.png') }}"'
-                                          + ' data-toggle="tooltip" data-placement="bottom" title="Joueur VIP">'
-                                  } else {
-                                     html += '&nbsp;<img src="{{ url_for('static', filename='img/emptyicon.png') }}">'
-                                  }
                                   return html;
                                }
                 },
@@ -81,6 +77,19 @@
                     "render": function ( data, type, full, meta ) {
                                   return '<a href="{{ url_for('user_blueprint.user', steam_id=0) }}' + full[3] + '">'
                                             + full[2] + '</a>';
+                               }
+                },
+                { className: "dt-body-center", "width": "80px", "targets": 3,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[4];
+                               }
+                },
+                { className: "dt-body-center", "width": "80px", "targets": 4,
+                    "render": function ( data, type, full, meta ) {
+                                  if (full[5] == 'high') return '<span class="redText">Haut</span>';
+                                  else if (full[5] == 'medium') return '<span class="greenText">Moyen</span>';
+                                  else if (full[5] == 'low') return '<span class="blueText">Bas</span>';
+                                  else return '';
                                }
                 }
             ]

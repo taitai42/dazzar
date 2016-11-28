@@ -5,7 +5,7 @@ from bot.dota_bot import DotaBotThread
 from web.web_application import create_app
 
 # Log
-logging.basicConfig(format='[%(asctime)s] %(levelname)s %(threadName)s %(message)s', level=logging.INFO)
+logging.basicConfig(format='[%(asctime)s] %(levelname)s %(threadName)s %(message)s', level=logging.DEBUG)
 
 
 class DazzarWorkerManager:

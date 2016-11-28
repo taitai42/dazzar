@@ -196,3 +196,16 @@ body {
     padding-left: 30px;
     padding-right: 30px;
 }
+
+/* General */
+.greenText {
+    color: #3c763d;
+}
+
+.redText {
+    color: #a94442;
+}
+
+.blueText {
+    color: #31708f;
+}

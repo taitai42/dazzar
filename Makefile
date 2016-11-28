@@ -16,18 +16,18 @@ db-stop:
 
 # migrate database from models
 db-migrate: build
-	-docker run --rm --name dazzar_migrate --link dazzar_postgres --link dazzar_rabbitmq -v $$(pwd)/migrations:/migrations -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
+	-docker run --rm --name dazzar_migrate --link dazzar_postgres --link dazzar_rabbitmq -v $$(pwd)/migrations:/migrations -w /dazzar -e CFG=../common/cfg/settings.cfg -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
 	sudo rm -rf migrations/__pycache__ migrations/versions/__pycache__
 	sudo chown -R `stat . -c %u:%g` migrations/versions/*
 
 
 # upgrade database on running postgres
 db-upgrade: build
-	docker run --rm --name dazzar_upgrade --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db upgrade
+	docker run --rm --name dazzar_upgrade --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar -e CFG=../common/cfg/settings.cfg -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db upgrade
 
 # downgrade database on running postgres
 db-downgrade: build
-	docker run --rm --name dazzar_upgrade --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db downgrade
+	docker run --rm --name dazzar_upgrade --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar -e CFG=../common/cfg/settings.cfg -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db downgrade
 
 ###########
 # General #
@@ -77,7 +77,7 @@ bot-run:
 # scripts
 SCRIPT?=make_admin -i 76561197961298382
 script: build
-	CFG=../common/cfg/settings.cfg docker run --rm --name dazzar_script --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar dazzar_web python3 /dazzar/common/scripts.py $(SCRIPT)
+	docker run --rm --name dazzar_script --link dazzar_postgres --link dazzar_rabbitmq -e CFG=../common/cfg/settings.cfg -w /dazzar dazzar_web python3 /dazzar/common/scripts.py $(SCRIPT)
 
 # build
 build:

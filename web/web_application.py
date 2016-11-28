@@ -2,6 +2,9 @@
 # Application Setup #
 #####################
 
+import locale
+locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
+
 from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -11,7 +14,7 @@ from flaskext.markdown import Markdown
 from common.cfg.configuration import load_config
 from common.job_queue import QueueAdapter
 from common.models import db
-
+from common.helpers import _jinja2_filter_french_date
 
 def create_app():
     app = Flask(__name__)
@@ -27,6 +30,9 @@ oid = OpenID(app, store_factory=lambda: None)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_blueprint.login'
+
+app.add_template_filter(_jinja2_filter_french_date, name='french_date')
+
 
 #######################
 # Blueprints Register #

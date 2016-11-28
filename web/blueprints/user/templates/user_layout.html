@@ -6,6 +6,16 @@
 
     <nav class="sub-titles">
         <ul>
+            {% if request.url_rule.endpoint in ['user_blueprint.user_profile'] %}
+            <li class="selected">
+            {% else %}
+            <li>
+            {% endif %}
+                <span class="sub-title">
+					<a href="{{ url_for('user_blueprint.user_profile') }}">Profil</a>
+				</span>
+            </li>
+
             {% if request.url_rule.endpoint in ['user_blueprint.users'] %}
             <li class="selected">
             {% else %}
@@ -16,15 +26,7 @@
 				</span>
             </li>
 
-            {% if request.url_rule.endpoint in ['user_blueprint.user_profile'] %}
-            <li class="selected">
-            {% else %}
-            <li>
-            {% endif %}
-                <span class="sub-title">
-					<a href="{{ url_for('user_blueprint.user_profile') }}">Mon Profil</a>
-				</span>
-            </li>
+
         </ul>
     </nav>
 

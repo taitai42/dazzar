@@ -1,6 +1,28 @@
 {% extends "ladder_layout.html" %}
 {% block ladderbody %}
 
+    {% if ladder=='high' %}
+        <a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='high')}}" type="button" class="btn btn-primary">
+    {% else %}
+        <a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='high')}}" type="button" class="btn btn-default">
+    {% endif %}
+    Haut MMR</a>
+
+    {% if ladder=='medium' %}
+        <a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='medium')}}" type="button" class="btn btn-primary">
+    {% else %}
+        <a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='medium')}}" type="button" class="btn btn-default">
+    {% endif %}
+    MMR Moyen</a>
+
+    {% if ladder=='low' %}
+        <a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='low')}}" type="button" class="btn btn-primary">
+    {% else %}
+        <a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='low')}}" type="button" class="btn btn-default">
+    {% endif %}
+    Bas MMR</a>
+    <br /><br />
+
     <table id="users" class="display cell-border stripe" cellspacing="0" width="100%">
         <thead>
             <tr>
@@ -9,6 +31,12 @@
                 <th class="dt-head-center">MMR</th>
                 <th></th>
                 <th class="dt-head-center">Pseudonyme</th>
+                <th class="dt-head-center">Matches</th>
+                <th class="dt-head-center">Wins</th>
+                <th class="dt-head-center">Loss</th>
+                <th class="dt-head-center">Dodge</th>
+                <th class="dt-head-center">Leave</th>
+                <th class="dt-head-center">W/R</th>
             </tr>
         </thead>
         <tbody>
@@ -42,7 +70,7 @@
             },
             "processing": true,
             "serverSide": true,
-            "ajax": "{{ url_for('ladder_blueprint.api_scoreboard') }}",
+            "ajax": "{{ url_for('ladder_blueprint.api_scoreboard', ladder=ladder) }}",
             "columnDefs": [
                 { className: "dt-body-center", "width": "30px", "targets": 0,
                     "render": function ( data, type, full, meta ) {
@@ -77,6 +105,36 @@
                                   html += '&nbsp;&nbsp;<a href="{{ url_for('user_blueprint.user', steam_id=0) }}' + full[3] + '">'
                                             + full[2] + '</a>';
                                   return html;
+                               }
+                },
+                { className: "dt-body-center", "width": "50px", "targets": 5,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[6];
+                               }
+                },
+                { className: "dt-body-center", "width": "50px", "targets": 6,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[7];
+                               }
+                },
+                { className: "dt-body-center", "width": "50px", "targets": 7,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[8];
+                               }
+                },
+                { className: "dt-body-center", "width": "50px", "targets": 8,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[9];
+                               }
+                },
+                { className: "dt-body-center", "width": "50px", "targets": 9,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[10];
+                               }
+                },
+                { className: "dt-body-center", "width": "50px", "targets": 10,
+                    "render": function ( data, type, full, meta ) {
+                                  return Math.round(full[7]/full[6]*100) + '%';
                                }
                 }
             ]

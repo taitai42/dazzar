@@ -8,7 +8,8 @@ RUN apt-get -y install \
     python3-pip \
     libpq-dev \
     libffi-dev \
-    git-core
+    git-core \
+    locales
 RUN pip3 install \
     tornado \
     psycopg2 \
@@ -20,9 +21,11 @@ RUN pip3 install \
     Flask-OpenID \
     Flask-Login \
     Flask-Script \
-    pika
+    pika \
+    pytz
+RUN echo 'fr_FR.UTF-8 UTF-8' > /etc/locale.gen && locale-gen
+
 RUN pip3 install git+https://github.com/ValvePython/dota2
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar
-
 COPY . /dazzar/

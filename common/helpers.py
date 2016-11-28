@@ -1,4 +1,5 @@
 import re
+import pytz
 
 # Regex to validate a user nickname
 valid_nick_re = re.compile('^(?=.{3,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$')
@@ -23,3 +24,9 @@ def validate_nickname(nickname):
         return None
     else:
         return "Pseudo non valide, seuls sont autorisés les caractères alphanumériques ainsi que '_' et '.'."
+
+
+def _jinja2_filter_french_date(date):
+    tz = pytz.timezone('Europe/Paris')
+    localized_date = pytz.timezone('UTC').localize(date).astimezone(tz)
+    return localized_date.strftime('%d %B - %H:%M:%S')

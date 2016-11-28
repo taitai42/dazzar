@@ -1,9 +1,10 @@
 import math
+import logging
 
 from flask_script import Manager
 
 from web.web_application import app, db
-from common.models import User
+from common.models import User, Scoreboard, Match
 import common.constants as constants
 
 manager = Manager(app)
@@ -31,16 +32,84 @@ def make_admin(steam_id):
 
 
 @manager.command
-def reset_vip_mmr():
-    """Reset all VIP MMR to the default value.
+def migration_script_1():
+    """Temp migration script.
     """
-    for user in db.session().query(User).all():
-        if user.solo_mmr is None or user.solo_mmr < 5000:
-            user.vip_mmr = None
-            user.give_permission(constants.PERMISSION_PLAY_VIP, False)
-        else:
-            user.vip_mmr = 2000 + math.floor((user.solo_mmr - 5000)/2)
-    db.session().commit()
+
+    # Clean scoreboard
+
+    for scoreboard in Scoreboard.query:
+        db.session.delete(scoreboard)
+    db.session.commit()
+
+    # Refresh sections
+    for user in User.query:
+        if user.solo_mmr is not None:
+            if user.solo_mmr > 5000:
+                user.section = constants.LADDER_HIGH
+            elif user.solo_mmr < 3000:
+                if user.section is None:
+                    user.section = constants.LADDER_LOW
+            else:
+                if user.section != constants.LADDER_HIGH:
+                    user.section = constants.LADDER_MEDIUM
+
+        # Detect vouched
+        if user.has_permission(constants.PERMISSION_PLAY_VIP):
+            user.section = constants.LADDER_HIGH
+
+        # If no right to play
+        if user.section is None:
+            continue
+
+        # Create scoreboard
+        scoreboard = user.scoreboards.filter_by(ladder_name=user.section).first()
+        if scoreboard is None:
+            scoreboard = Scoreboard(user, user.section)
+            db.session.add(scoreboard)
+    db.session.commit()
+
+    # Replay matches to update data and mmr, everyone starts at 5K
+    for match in Match.query.order_by(Match.created):
+        match.section = constants.LADDER_HIGH
+        match.radiant_win = None
+
+        for player in match.players:
+            user = player.player
+            scoreboard = user.scoreboards.filter_by(ladder_name=match.section).first()
+            if scoreboard is None:
+                continue
+            if player.mmr_after == player.mmr_before - 150:
+                player.is_dodge = True
+                scoreboard.dodge += 1
+                player.mmr_before = scoreboard.mmr
+                player.mmr_after = player.mmr_before - 150
+                scoreboard.mmr = player.mmr_after
+            elif player.mmr_after == player.mmr_before - 300:
+                player.is_leave = True
+                scoreboard.matches += 1
+                scoreboard.leave += 1
+                player.mmr_before = scoreboard.mmr
+                player.mmr_after = player.mmr_before - 300
+                scoreboard.mmr = player.mmr_after
+            elif player.mmr_after == player.mmr_before + 50:
+                match.radiant_win = player.is_radiant
+                scoreboard.matches += 1
+                scoreboard.win += 1
+                player.mmr_before = scoreboard.mmr
+                player.mmr_after = player.mmr_before + 50
+                scoreboard.mmr = player.mmr_after
+            elif player.mmr_after == player.mmr_before - 50:
+                match.radiant_win = not player.is_radiant
+                scoreboard.matches += 1
+                scoreboard.loss += 1
+                player.mmr_before = scoreboard.mmr
+                player.mmr_after = player.mmr_before - 50
+                scoreboard.mmr = player.mmr_after
+            else:
+                player.mmr_before = scoreboard.mmr
+                player.mmr_after = scoreboard.mmr
+        db.session.commit()
 
 
 #######################

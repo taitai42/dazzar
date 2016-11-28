@@ -1,77 +1,109 @@
 {% extends "user_layout.html" %}
 {% block userbody %}
 
-    <ul>
-        <li>Pseudo: {{ user.nickname }}</li>
-        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
-            <a href="{{ url_for('user_blueprint.nickname_delete', steam_id=user.id) }}">Supprimer le pseudo du joueur (force nouveau choix)</a>
-        {% endif %}
-        <li>SteamID: {{ user.id }}</li>
-        <li>Utilisateur vérifié: {{ user.verified }}</li>
-        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
-            <a href="{{ url_for('user_blueprint.verify_user', steam_id=user.id) }}">Verifier/Dévérifier utilisateur</a>
-        {% endif %}
-        <li><img src="{{ user.avatar }}"><img src="{{ user.avatar_medium }}"><img src="{{ user.avatar_full }}"></li>
-        <li><a href="http://www.dotabuff.com/players/{{ user.id }}">Dotabuff</a> & <a href="http://steamcommunity.com/profiles/{{ user.id }}">Steam Profile</a></li>
+    <br />
 
-        <li>Admin:
-            {% if user.has_permission("admin") %}
-            Oui
-            {% else %}
-            Non
-            {% endif %}
-        </li>
-        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
-            {% if user.has_permission("admin") %}
-            <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='admin', give=False) }}">Retirer droits d'administration</a>
-            {% else %}
-            <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='admin', give=True) }}">Donner droits d'administration</a>
-            {% endif %}
-        {% endif %}
-
-        <li>Joueur VIP:
-            {% if user.has_permission("play_vip") %}
-            Oui
-            {% else %}
-            Non
-            {% endif %}
-        </li>
-        {% if user.has_permission("play_vip") %}
-        <li>VIP MMR: {{ user.vip_mmr }}</li>
-        {% endif %}
-
-        {% if current_user.is_authenticated and current_user.has_permission("admin") %}
-            {% if user.has_permission("play_vip") %}
-            <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='play_vip', give=False) }}">Retirer la permission de jouer</a>
-            {% else %}
-            <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='play_vip', give=True) }}">Donner la permission de jouer</a>
-            {% endif %}
-        {% endif %}
-
-        <li>Dernier scan:
-            {% if user.profile_scan_info is not none and user.profile_scan_info.last_scan is not none %}
-            {{ user.profile_scan_info.last_scan}}
-            {% else %}
-            Jamais
-            {% endif %}
-        </li>
-        <li>Dernier Solo MMR scanné :
-            {% if user.solo_mmr is none %}
-            Inconnu
-            {% else %}
-            {{ user.solo_mmr }}
-            {% endif %}
-        </li>
-    </ul>
+    <div class="row">
+        <div class="col-md-3 col-md-offset-3">
+            <img class="img-rounded" src="{{ user.avatar_full }}">
+        </div>
+        <div class="col-md-3 text-center">
+            <h3>{{ user.nickname }}</h3>
+            <p>
+                <a href="http://steamcommunity.com/profiles/{{ user.id }}" data-toggle="tooltip" data-placement="bottom" title="Profil Steam Community">
+                    <img class="img-rounded" src="{{ url_for('static', filename='img/steamicon.png') }}"></a>
+                &nbsp;
+                <a href="http://www.dotabuff.com/players/{{ user.id }}" data-toggle="tooltip" data-placement="bottom" title="Profil Dotabuff">
+                    <img class="img-rounded" src="{{ url_for('static', filename='img/dotabufficon.png') }}"></a>
+                &nbsp;
+                {% if user.has_permission("admin") %}
+                <img src="{{ url_for('static', filename='img/adminicon.png') }}" data-toggle="tooltip" data-placement="bottom" title="Admin">
+                {% else %}
+                <img src="{{ url_for('static', filename='img/emptyicon.png') }}">
+                {% endif %}
+                &nbsp;
+                {% if user.verified %}
+                <img src="{{ url_for('static', filename='img/verifiedicon.png') }}" data-toggle="tooltip" data-placement="bottom" title="Utilisateur Vérifié">
+                {% else %}
+                <img src="{{ url_for('static', filename='img/emptyicon.png') }}">
+                {% endif %}
+            </p><br />
+            <p>
+                Solo MMR
+                {% if user.solo_mmr is none %}
+                    Inconnu
+                {% else %}
+                    {{ user.solo_mmr }}
+                {% endif %}
+            </p>
+            <p>
+                {% if user.section is none %}
+                    Membre d'aucun ladder.
+                {% elif user.section == 'high'%}
+                    Membre du ladder > 5K.
+                {% elif user.section == 'medium' %}
+                    Membre du ladder intermédiaire de 3K à 5K.
+                {% elif user.section == 'low' %}
+                    Membre du ladder < 3K.
+                {% endif %}
+            </p>
+        </div>
+    </div>
 
     {% if current_user.is_authenticated and current_user.id == user.id %}
-    <p>
-        {% if scan_possible %}
-            <a href="{{ url_for('user_blueprint.user_scan') }}">Cliquez-ici</a> pour lancer un nouveau scan.
-        {% else %}
-        Un scan est en cours, rafraichissez la page dans un moment. Vous ne pouvez lancer un scan qu'une fois toutes les 5 minutes.
-        {% endif %}
-    </p>
+    <br />
+    <div class="row">
+        <div class="col-md-6 col-md-offset-4">
+            <p>
+            {% if user.profile_scan_info is not none and user.profile_scan_info.last_scan is not none %}
+                Le dernier scan de profil Dota remonte au {{ user.profile_scan_info.last_scan|french_date }}.
+            {% else %}
+                Aucun scan de profil.
+            {% endif %}
+            <br />
+            {% if scan_possible %}
+                <a href="{{ url_for('user_blueprint.user_scan') }}">Cliquez-ici</a> pour lancer un scan de votre profil Dota.
+            {% else %}
+                Vous ne pouvez lancer un scan qu'une fois toutes les 5 minutes, rafraîchissez votre de page dans un instant pour avoir le résultat.
+            {% endif %}
+            </p>
+        </div>
+    </div>
     {% endif %}
+
+    {% if current_user.is_authenticated and current_user.has_permission("admin") %}
+    <br />
+    <div class="row">
+        <div class="col-md-6 col-md-offset-4">
+            <p>Actions d'administration</p>
+            <ul>
+                <li>
+                    <a href="{{ url_for('user_blueprint.nickname_delete', steam_id=user.id) }}">Supprimer le pseudo du joueur (force nouveau choix)</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('user_blueprint.verify_user', steam_id=user.id) }}">Verifier/Dévérifier utilisateur</a>
+                </li>
+                <li>
+                    {% if user.has_permission("admin") %}
+                    <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='admin', give=False) }}">Retirer droits d'administration</a>
+                    {% else %}
+                    <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='admin', give=True) }}">Donner droits d'administration</a>
+                    {% endif %}
+                </li>
+                <li>
+                    <a href="{{ url_for('user_blueprint.user_section', steam_id=user.id, ladder='high') }}">Forcer ladder high</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('user_blueprint.user_section', steam_id=user.id, ladder='medium') }}">Forcer ladder medium</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('user_blueprint.user_section', steam_id=user.id, ladder='low') }}">Forcer ladder low</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+
 
 {% endblock %}

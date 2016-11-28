@@ -1,4 +1,3 @@
-import math
 import random
 import logging
 from threading import Thread
@@ -14,7 +13,7 @@ from dota2.enums import DOTA_GC_TEAM, EMatchOutcome
 
 from web.web_application import create_app
 
-from common.models import db, User, Match, PlayerInMatch
+from common.models import db, User, Match, PlayerInMatch, Scoreboard
 from common.job_queue import QueueAdapter, Job, JobType
 import common.constants as constants
 
@@ -114,17 +113,26 @@ class DotaBotThread(EventEmitter, Thread):
                 continue
             solo_mmr = int(slot.stat.stat_score)
 
-        with self.app.app_context():
-            user = User.query.filter_by(id=self.current_job.steam_id).first()
-            user.profile_scan_info.last_scan = datetime.utcnow()
+        if solo_mmr is not None:
+            with self.app.app_context():
+                user = User.query.filter_by(id=self.current_job.steam_id).first()
+                user.profile_scan_info.last_scan = datetime.utcnow()
 
-            if solo_mmr is not None:
                 user.solo_mmr = solo_mmr
                 if user.solo_mmr > 5000:
-                    user.give_permission(constants.PERMISSION_PLAY_VIP, True)
-                    if user.vip_mmr is None:
-                        user.vip_mmr = 2000 + math.floor((user.solo_mmr - 5000)/2)
-            db.session.commit()
+                    user.section = constants.LADDER_HIGH
+                elif user.solo_mmr < 3000:
+                    if user.section is None:
+                        user.section = constants.LADDER_LOW
+                else:
+                    if user.section != constants.LADDER_HIGH:
+                        user.section = constants.LADDER_MEDIUM
+
+                scoreboard = Scoreboard.query.filter_by(user_id=user.id, ladder_name=user.section).first()
+                if scoreboard is None:
+                    scoreboard = Scoreboard(user, user.section)
+                    db.session.add(scoreboard)
+                db.session.commit()
         self.current_job.scan_finish = True
 
     # Manage games
@@ -160,11 +168,11 @@ class DotaBotThread(EventEmitter, Thread):
             options = {
                 'game_name': 'Dazzar Game {0}'.format(str(self.match.id)),
                 'pass_key': self.match.password,
-                'game_mode': dota2.enums.DOTA_GameMode.DOTA_GAMEMODE_RD,
+                'game_mode': dota2.enums.DOTA_GameMode.DOTA_GAMEMODE_AP,
                 'server_region': int(dota2.enums.EServerRegion.Europe),
                 'fill_with_bots': False,
                 'allow_spectating': True,
-                'allow_cheats': False,
+                'allow_cheats': True,
                 'allchat': False,
                 'dota_tv_delay': 2,
                 'pause_setting': 1
@@ -211,7 +219,10 @@ class DotaBotThread(EventEmitter, Thread):
                             player.player.current_match = None
                         if player.player_id in self.missing_players or player.player_id in self.wrong_team_players:
                             player.mmr_after = max(player.mmr_before - 150, 0)
-                            player.player.vip_mmr = player.mmr_after
+                            player.is_dodge = True
+                            score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player.player_id).first()
+                            score.mmr = player.mmr_after
+                            score.dodge += 1
                         else:
                             player.mmr_after = player.mmr_before
                     db.session.commit()
@@ -251,11 +262,21 @@ class DotaBotThread(EventEmitter, Thread):
                             player.mmr_after = player.mmr_before
                             if player.player_id in self.missing_players or player.player_id in self.wrong_team_players:
                                 player.mmr_after = max(player.mmr_before - 150, 0)
+                                player.is_dodge = True
+                                score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player.player_id).first()
+                                score.mmr = player.mmr_after
+                                score.dodge += 1
                     elif self.game_status.state == 3:
                         # state POSTGAME = 3, report result and leavers
                         logging.info('Game %s over.' % self.current_job.match_id)
                         match.status = constants.MATCH_STATUS_ENDED
                         match.server = None
+                        if self.game_status.match_outcome == 2:
+                            match.radiant_win = True
+                        elif self.game_status.match_outcome == 3:
+                            match.radiant_win = False
+                        else:
+                            match.radiant_win = None
 
                         self.players = {}
                         for player in PlayerInMatch.query. \
@@ -270,16 +291,24 @@ class DotaBotThread(EventEmitter, Thread):
                             if player.id == self.dota.steam_id:
                                 continue
                             id = player.id
+                            score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=id).first()
                             if (self.players[id].is_radiant and self.game_status.match_outcome == 2) or \
                                (not self.players[id].is_radiant and self.game_status.match_outcome == 3):
                                 self.players[id].mmr_after = self.players[id].mmr_before + 50
+                                score.win += 1
                             elif (self.players[id].is_radiant and self.game_status.match_outcome == 3) or \
                                (not self.players[id].is_radiant and self.game_status.match_outcome == 2):
                                 self.players[id].mmr_after = max(self.players[id].mmr_before - 50, 0)
+                                score.loss += 1
                         for player in self.game_status.left_members:
+                            score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player.id).first()
                             self.players[player.id].mmr_after = max(self.players[player.id].mmr_before-300, 0)
+                            self.players[player.id].is_leaver = True
+                            score.leave += 1
                         for player_id, player in self.players.items():
-                            player.player.vip_mmr = player.mmr_after
+                            score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player_id).first()
+                            score.mmr = player.mmr_after
+                            score.matches += 1
                     db.session.commit()
 
             self.dota.leave_practice_lobby()
@@ -287,7 +316,6 @@ class DotaBotThread(EventEmitter, Thread):
 
     def game_update(self, message):
         self.game_status = message
-        logging.error('%s', message)
 
     def compute_missing_players(self):
         self.missing_players = []

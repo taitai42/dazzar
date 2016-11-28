@@ -75,7 +75,7 @@
             </li>
 
             {% if request.url_rule.endpoint in ['user_blueprint.nickname', 'user_blueprint.users',
-                'user_blueprint.user'] %}
+                'user_blueprint.user', 'user_blueprint.user_profile' ] %}
             <li class="selected">
             {% else %}
             <li>
@@ -109,7 +109,7 @@
             <li>
             {% endif %}
                 <span class="title">
-					<a href="{{ url_for('ladder_blueprint.ladder_scoreboard') }}">Ladder</a>
+					<a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='high') }}">Ladder</a>
 				</span>
             </li>
         </ul>

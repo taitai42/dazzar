@@ -3,9 +3,10 @@
     <table id="matches" class="display cell-border stripe" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <th class="dt-head-center">MatchID</th>
-                <th>Date</th>
+                <th class="dt-head-center">Ladder</th>
                 <th class="dt-head-center">État</th>
+                <th class="dt-head-center">Date</th>
+                <th>Nom de la partie</th>
             </tr>
         </thead>
         <tbody>
@@ -40,13 +41,35 @@
             "serverSide": true,
             "ajax": "{{ url_for('ladder_blueprint.api_matches') }}",
             "columnDefs": [
-                { className: "dt-body-center", "width": "200px", "targets": 0 },
-                { className: "dt-body-center", "width": "200px", "targets": 2 }
+                { className: "dt-body-center", "width": "100px", "targets": 0,
+                    "render": function ( data, type, full, meta ) {
+                        if (full[1] == 'high') return '<span class="redText">Haut</span>';
+                        else if (full[1] == 'medium') return '<span class="greenText">Moyen</span>';
+                        else if (full[1] == 'low') return '<span class="blueText">Bas</span>';
+                        else return '';
+                    }
+                },
+                { className: "dt-body-center", "width": "100px", "targets": 1,
+                    "render": function ( data, type, full, meta ) {
+                        if (full[2] == 0) return '<span class="blueText">Création</span>';
+                        else if (full[2] == 1) return '<span class="blueText">En attente.</span>';
+                        else if (full[2] == 3) return '<span class="blueText">En cours.</span>';
+                        else if (full[2] == 2) return '<span class="redText">Annulé</span>';
+                        else if (full[2] == 4) return '<span class="greenText">Terminé.</span>';
+                        else return '';
+                    }
+                },
+                { className: "dt-body-center", "width": "200px", "targets": 2,
+                    "render": function ( data, type, full, meta ) {
+                        return full[3];
+                    }
+                },
+                { "targets": 3,
+                    "render": function ( data, type, full, meta ) {
+                        return '<a href="{{ url_for('ladder_blueprint.match', match_id=0) }}' + full[0] + '">Dazzar Game ' + full[0] + '</a>';
+                    }
+                }
             ]
-        });
-
-        $('#matches tbody').on( 'click', 'tr', function () {
-            window.location = "{{ url_for('ladder_blueprint.match', match_id=0) }}" + $(this).children()[0].textContent;
         });
     } );
 </script>

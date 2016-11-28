@@ -5,14 +5,13 @@ from datetime import datetime, timedelta
 from flask import Blueprint, request, current_app, url_for, abort, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
-from common.models import db, User, ProfileScanInfo
+from common.models import db, User, ProfileScanInfo, Scoreboard
 from common.job_queue import QueueAdapter, Job, JobType
 from common.helpers import validate_nickname
 import common.constants as constants
 
 
 def make_blueprint(job_queue):
-
     user_blueprint = Blueprint('user_blueprint', __name__, template_folder='templates')
 
     @user_blueprint.route('/nickname', methods=['GET', 'POST'])
@@ -57,6 +56,7 @@ def make_blueprint(job_queue):
         if target_user is not None and current_user.has_permission(constants.PERMISSION_ADMIN):
             target_user.nickname = None
             target_user.verified = False
+            target_user.section = None
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 
@@ -71,7 +71,6 @@ def make_blueprint(job_queue):
             target_user.current_match = None
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
-
 
     @user_blueprint.route('/user/verify/<int:steam_id>')
     @login_required
@@ -102,8 +101,8 @@ def make_blueprint(job_queue):
         length = int(request.args.get('length', '20'))
         start = int(request.args.get('start', '0'))
 
-        query = db.session().query(User)\
-            .order_by(User.nickname)\
+        query = db.session().query(User) \
+            .order_by(User.nickname) \
             .filter(User.nickname.isnot(None))
 
         if search != '':
@@ -111,17 +110,16 @@ def make_blueprint(job_queue):
 
         count = query.count()
 
-        query = query.offset(start)\
+        query = query.offset(start) \
             .limit(length)
 
         data = []
         for user in query.all():
             permissions = {
                 'verified': user.verified,
-                constants.PERMISSION_ADMIN: user.has_permission(constants.PERMISSION_ADMIN),
-                constants.PERMISSION_PLAY_VIP: user.has_permission(constants.PERMISSION_PLAY_VIP)
+                constants.PERMISSION_ADMIN: user.has_permission(constants.PERMISSION_ADMIN)
             }
-            data.append([user.avatar, permissions, user.nickname, str(user.id)])
+            data.append([user.avatar, permissions, user.nickname, str(user.id), user.solo_mmr, user.section])
         results = {
             "draw": draw,
             "recordsTotal": count,
@@ -141,8 +139,9 @@ def make_blueprint(job_queue):
         if user_requested is None:
             abort(404)
         if current_user.is_authenticated and current_user.id == user_requested.id and \
-            (current_user.profile_scan_info is None or
-                datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(minutes=5)):
+                (current_user.profile_scan_info is None or
+                             datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(
+                         minutes=5)):
             scan_possible = True
         else:
             scan_possible = False
@@ -152,7 +151,7 @@ def make_blueprint(job_queue):
     @login_required
     def user_profile():
         if (current_user.profile_scan_info is None or
-                datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(minutes=5)):
+                        datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(minutes=5)):
             scan_possible = True
         else:
             scan_possible = False
@@ -196,5 +195,20 @@ def make_blueprint(job_queue):
         job_queue.produce(pickle.dumps(Job(JobType.ScanProfile, steam_id=current_user.id)))
 
         return redirect(url_for('user_blueprint.user', steam_id=current_user.id))
+
+    @user_blueprint.route('/user/section/<int:steam_id>/<string:ladder>')
+    @login_required
+    def user_section(steam_id, ladder):
+        target_user = db.session().query(User).filter_by(id=steam_id).first()
+        if target_user is not None and\
+            ladder in [constants.LADDER_HIGH, constants.LADDER_MEDIUM, constants.LADDER_LOW] and\
+                current_user.has_permission(constants.PERMISSION_ADMIN):
+            target_user.section = ladder
+            scoreboard = Scoreboard.query.filter_by(user_id=target_user.id, ladder_name=ladder).first()
+            if scoreboard is None:
+                scoreboard = Scoreboard(target_user, ladder)
+                db.session.add(scoreboard)
+            db.session().commit()
+        return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 
     return user_blueprint

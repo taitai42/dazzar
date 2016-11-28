@@ -64,7 +64,7 @@ def make_blueprint():
         date_limit = datetime.utcnow() - timedelta(days=7)
 
         query = UserMixDetail.query\
-            .order_by(UserMixDetail.refresh_date)\
+            .order_by(UserMixDetail.refresh_date.desc())\
             .filter(UserMixDetail.refresh_date > date_limit.isoformat())\
             .filter_by(enabled=True)
 

@@ -5,27 +5,56 @@
 {% endblock %}
 
 {% block ladderbody %}
+
     {% if is_open %}
         {% if current_user.has_permission('admin') %}
         <p><a href="{{ url_for('ladder_blueprint.ladder_open') }}">Fermer le ladder.</a></p>
         {% endif %}
+        <p>Le ladder est ouvert.</p>
 
-        {% if not current_user.has_permission('play_vip') %}
-            Vous devez être vouched pour jouer sur le ladder VIP.
-            Rendez vous sur votre profil pour demander au bot de scanner votre MMR.<br />
+        <p>
+        {% if current_user.section is none %}
+        Vous ne pouvez pas rejoindre la queue car vous n'avez pas encore scan votre MMR. Rendez vous sur votre <a
+                href="{{ url_for('user_blueprint.user_profile') }}">Profil</a> pour effectuer cette opération.
         {% else %}
+            {% if current_user.section == 'high' %}
+            Vous êtes dans le ladder > 5K MMR.
+            {% elif current_user.section == 'medium' %}
+            Vous êtes dans le ladder compris entre 3K et 5K MMR.
+            {% elif current_user.section == 'low' %}
+            Vous êtes dans le ladder < 3K MMR.
+            {% endif %}
+
+            <br />
             {% if in_queue %}
-                <a href="{{ url_for('ladder_blueprint.queue') }}">Sortir de la Queue</a>
+            <a href="{{ url_for('ladder_blueprint.queue') }}">Sortir de la queue</a>
             {% else %}
-                <a href="{{ url_for('ladder_blueprint.queue') }}">Rentrez Dans la Queue</a>
+            <a href="{{ url_for('ladder_blueprint.queue') }}">Rentrez dans la queue</a>
             {% endif %}
         {% endif %}
         </p>
-        <p> Queue actuelle de {{ current_queue|length }} / 10 joueurs.</p>
+
+        <p>État des queues:</p>
+        <ul>
+            <li>Haut MMR: {{ current_queues['high'] }} / 10.</li>
+            <li>MMR Moyen: {{ current_queues['medium'] }} / 10.</li>
+            <li>Bas MMR: {{ current_queues['low'] }} / 10.</li>
+        </ul>
+
     {% else %}
         {% if current_user.has_permission('admin') %}
         <p><a href="{{ url_for('ladder_blueprint.ladder_open') }}">Ouvrir le ladder.</a></p>
         {% endif %}
         <p>Le ladder n'est pas ouvert pour le moment.</p>
     {% endif %}
+
+    <p>Les prochaines dates d'ouverture du ladder sont:</p>
+    <ul>
+        <li>Le mardi 29 Novembre de 20h à 2h.</li>
+        <li>Le vendredi 2 Décembre de 20h à 2h.</li>
+        <li>Le mardi 6 Décembre de 20h à 2h.</li>
+        <li>Le dimanche 11 Décembre de 20h à 2h.</li>
+    </ul>
+
+
 {% endblock %}

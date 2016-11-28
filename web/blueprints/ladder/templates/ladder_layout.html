@@ -6,16 +6,6 @@
 
     <nav class="sub-titles">
         <ul>
-            {% if request.url_rule.endpoint in ['ladder_blueprint.ladder_scoreboard'] %}
-            <li class="selected">
-            {% else %}
-            <li>
-            {% endif %}
-                <span class="sub-title">
-					<a href="{{ url_for('ladder_blueprint.ladder_scoreboard') }}">Scoreboard</a>
-				</span>
-            </li>
-
             {% if request.url_rule.endpoint in ['ladder_blueprint.ladder_play'] %}
             <li class="selected">
             {% else %}
@@ -26,13 +16,23 @@
 				</span>
             </li>
 
+            {% if request.url_rule.endpoint in ['ladder_blueprint.ladder_scoreboard'] %}
+            <li class="selected">
+            {% else %}
+            <li>
+            {% endif %}
+                <span class="sub-title">
+					<a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='high') }}">Scoreboards</a>
+				</span>
+            </li>
+
             {% if request.url_rule.endpoint in ['ladder_blueprint.ladder_matches'] %}
             <li class="selected">
             {% else %}
             <li>
             {% endif %}
                 <span class="sub-title">
-					<a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Les Matchs</a>
+					<a href="{{ url_for('ladder_blueprint.ladder_matches') }}">Matchs</a>
 				</span>
             </li>
         </ul>
