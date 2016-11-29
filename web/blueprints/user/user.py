@@ -174,8 +174,6 @@ def make_blueprint(job_queue):
 
         if current_user.has_permission(constants.PERMISSION_ADMIN):
             target_user.give_permission(permission, give)
-            if permission == constants.PERMISSION_PLAY_VIP and give and target_user.vip_mmr is None:
-                target_user.vip_mmr = 2000
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 

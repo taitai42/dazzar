@@ -46,8 +46,6 @@ class User(db.Model):
     section = db.Column(db.String, nullable=True)
     scoreboards = db.relationship('Scoreboard', lazy='dynamic', back_populates='user')
 
-    vip_mmr = db.Column(db.Integer(), nullable=True, index=True)
-
     user_permission = db.relationship('UserPermission', secondary=permissions, lazy='dynamic', backref=db.backref('users', lazy='dynamic'))
     user_mix_detail = db.relationship("UserMixDetail", uselist=False, backref=db.backref('user', uselist=False))
     profile_scan_info = db.relationship("ProfileScanInfo", uselist=False, backref=db.backref('user', uselist=False))
@@ -62,9 +60,7 @@ class User(db.Model):
         self.avatar_medium = None
         self.avatar_full = None
         self.verified = False
-
         self.solo_mmr = None
-        self.vip_mmr = None
 
     def is_authenticated(self):
         return True

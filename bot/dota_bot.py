@@ -168,11 +168,11 @@ class DotaBotThread(EventEmitter, Thread):
             options = {
                 'game_name': 'Dazzar Game {0}'.format(str(self.match.id)),
                 'pass_key': self.match.password,
-                'game_mode': dota2.enums.DOTA_GameMode.DOTA_GAMEMODE_AP,
+                'game_mode': dota2.enums.DOTA_GameMode.DOTA_GAMEMODE_RD,
                 'server_region': int(dota2.enums.EServerRegion.Europe),
                 'fill_with_bots': False,
                 'allow_spectating': True,
-                'allow_cheats': True,
+                'allow_cheats': False,
                 'allchat': False,
                 'dota_tv_delay': 2,
                 'pause_setting': 1

@@ -150,7 +150,7 @@ def make_blueprint(job_queue):
                 
                 query = QueuedPlayer.query.filter_by(queue_name=current_user.section)\
                     .order_by(QueuedPlayer.added).limit(10)
-                if query.count() >= 1:
+                if query.count() >= 10:
                     # Create a game
                     players = []
                     for player in query.all():
