@@ -6,10 +6,10 @@
     <table id="mixs" class="display cell-border stripe" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <th>Utilisateur</th>
+                <th class="dt-head-center">Utilisateur</th>
+                <th class="dt-head-center">Titre</th>
                 <th class="dt-head-center">Objectif</th>
                 <th class="dt-head-center">Niveau</th>
-                <th class="dt-head-center">Titre</th>
             </tr>
         </thead>
         <tbody>
@@ -45,12 +45,45 @@
             "serverSide": true,
             "ajax": "{{ url_for('mix_blueprint.api_mixs') }}",
             "columnDefs": [
-
+                { className: "dt-body-center", "width": "240px", "targets": 0,
+                    "render": function ( data, type, full, meta ) {
+                                  var html = ''
+                                  html += '<img class="img-rounded" src="' + full[1] + '">&nbsp;';
+                                  html += '<a href="http://steamcommunity.com/profiles/' + full[0]
+                                       + '" data-toggle="tooltip" data-placement="bottom" title="Profil Steam Community"'
+                                       + '><img class=".img-rounded" src="{{ url_for('static', filename='img/steamicon.png') }}"></a>'
+                                  html += '&nbsp;<a href="http://www.dotabuff.com/players/' + full[0]
+                                       + '" data-toggle="tooltip" data-placement="bottom" title="Profil Dotabuff"'
+                                       + '><img src="{{ url_for('static', filename='img/dotabufficon.png') }}"></a>'
+                                  html += '&nbsp;&nbsp;<a href="{{ url_for('user_blueprint.user', steam_id=0) }}' + full[0] + '">'
+                                            + full[2] + '</a>';
+                                  return html;
+                               }
+                },
+                { className: "dt-body-center", "targets": 1,
+                    "render": function ( data, type, full, meta ) {
+                                  var html = ''
+                                  html += '<a href="{{ url_for('mix_blueprint.mix', mix_id=0) }}' + full[0] + '">'
+                                       + full[3] + '</a>'
+                                  html += '<a style="float:right; padding-top:3px;" href="{{ url_for('mix_blueprint.mix', mix_id=0) }}' + full[0] + '">'
+                                       + '<span class="logout glyphicon glyphicon-log-out" aria-hidden="true"></span></a>'
+                                  return html
+                              }
+                },
+                { className: "dt-body-center", "width": "200px", "targets": 2,
+                    "render": function ( data, type, full, meta ) {
+                                  return full[4];
+                              }
+                },
+                { className: "dt-body-center", "width": "140px", "targets": 3,
+                    "render": function ( data, type, full, meta ) {
+                                  var html = ''
+                                  html += '<a href="{{ url_for('mix_blueprint.mix', mix_id=0) }}' + full[0] + '">'
+                                       + full[3] + '</a>'
+                                  return full[5];
+                              }
+                },
             ]
-        });
-
-        mixs.on( 'click', 'td', function () {
-            window.location = '{{ url_for('mix_blueprint.mix', mix_id=0) }}' + mixs.row(this).data()[4];
         });
     } );
 </script>

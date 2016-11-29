@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, url_for, redirect, render_templat
 from flask_login import current_user, login_required
 
 
-from common.models import db, UserMixDetail
+from common.models import db, User, UserMixDetail
 
 def make_blueprint():
 
@@ -58,15 +58,16 @@ def make_blueprint():
         """Endpoint for the datatable to request mixs."""
 
         draw = request.args.get('draw', '1')
-        length = 25
+        length = int(request.args.get('length', '20'))
         start = int(request.args.get('start', '0'))
 
         date_limit = datetime.utcnow() - timedelta(days=7)
 
-        query = UserMixDetail.query\
-            .order_by(UserMixDetail.refresh_date.desc())\
+        query = db.session().query(User, UserMixDetail)\
+            .filter(UserMixDetail.id == User.id)\
             .filter(UserMixDetail.refresh_date > date_limit.isoformat())\
-            .filter_by(enabled=True)
+            .filter(UserMixDetail.enabled)\
+            .order_by(UserMixDetail.refresh_date.desc())\
 
         count = query.count()
 
@@ -74,8 +75,8 @@ def make_blueprint():
             .limit(length)
 
         data = []
-        for mix in query.all():
-            data.append([mix.user.nickname, mix.goal, mix.level, mix.title, str(mix.id)])
+        for user, mix_details in query.all():
+            data.append([str(user.id), user.avatar, user.nickname, mix_details.title, mix_details.goal, mix_details.level])
         results = {
             "draw": draw,
             "recordsTotal": count,

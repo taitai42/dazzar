@@ -71,7 +71,7 @@ def make_blueprint(job_queue):
             .filter(Scoreboard.ladder_name == ladder)\
             .filter(Scoreboard.matches != 0)\
             .filter(User.nickname.isnot(None))\
-            .order_by(Scoreboard.mmr.desc())
+            .order_by(Scoreboard.mmr.desc(), User.solo_mmr.desc())
 
         count = query.count()
 
