@@ -45,7 +45,7 @@
             "serverSide": true,
             "ajax": "{{ url_for('mix_blueprint.api_mixs') }}",
             "columnDefs": [
-                { className: "dt-body-center", "width": "240px", "targets": 0,
+                { "width": "240px", "targets": 0,
                     "render": function ( data, type, full, meta ) {
                                   var html = ''
                                   html += '<img class="img-rounded" src="' + full[1] + '">&nbsp;';
@@ -60,7 +60,7 @@
                                   return html;
                                }
                 },
-                { className: "dt-body-center", "targets": 1,
+                { "targets": 1,
                     "render": function ( data, type, full, meta ) {
                                   var html = ''
                                   html += '<a href="{{ url_for('mix_blueprint.mix', mix_id=0) }}' + full[0] + '">'

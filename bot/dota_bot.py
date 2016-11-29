@@ -105,11 +105,10 @@ class DotaBot(Greenlet, EventEmitter):
                 continue
             solo_mmr = int(slot.stat.stat_score)
 
-        if solo_mmr is not None:
-            with self.app.app_context():
-                user = User.query.filter_by(id=self.current_job.steam_id).first()
-                user.profile_scan_info.last_scan = datetime.utcnow()
-
+        with self.app.app_context():
+            user = User.query.filter_by(id=self.current_job.steam_id).first()
+            user.profile_scan_info.last_scan = datetime.utcnow()
+            if solo_mmr is not None:
                 user.solo_mmr = solo_mmr
                 if user.solo_mmr > 5000:
                     user.section = constants.LADDER_HIGH
@@ -124,7 +123,7 @@ class DotaBot(Greenlet, EventEmitter):
                 if scoreboard is None:
                     scoreboard = Scoreboard(user, user.section)
                     db.session.add(scoreboard)
-                db.session.commit()
+            db.session.commit()
         self.current_job.scan_finish = True
 
     # Manage games

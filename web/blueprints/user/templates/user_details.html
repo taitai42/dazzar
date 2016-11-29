@@ -50,7 +50,6 @@
         </div>
     </div>
 
-    {% if current_user.is_authenticated and current_user.id == user.id %}
     <br />
     <div class="row">
         <div class="col-md-6 col-md-offset-4">
@@ -58,18 +57,22 @@
             {% if user.profile_scan_info is not none and user.profile_scan_info.last_scan is not none %}
                 Le dernier scan de profil Dota remonte au {{ user.profile_scan_info.last_scan|french_date }}.
             {% else %}
-                Aucun scan de profil.
+                Aucun scan de profil effectué.
             {% endif %}
+            <br />
+            {% if current_user.is_authenticated and current_user.id == user.id %}
+            <span class="logout glyphicon glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+            Vous devez afficher votre MMR sur votre profil Dota pour qu'il soit détecté.
             <br />
             {% if scan_possible %}
                 <a href="{{ url_for('user_blueprint.user_scan') }}">Cliquez-ici</a> pour lancer un scan de votre profil Dota.
             {% else %}
                 Vous ne pouvez lancer un scan qu'une fois toutes les 5 minutes, rafraîchissez votre de page dans un instant pour avoir le résultat.
             {% endif %}
+            {% endif %}
             </p>
         </div>
     </div>
-    {% endif %}
 
     {% if current_user.is_authenticated and current_user.has_permission("admin") %}
     <br />
