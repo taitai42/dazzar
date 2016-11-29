@@ -1,5 +1,6 @@
 import logging
 import pickle
+import random
 from gevent import Greenlet, sleep, spawn, joinall
 from eventemitter import EventEmitter
 
@@ -62,7 +63,7 @@ class DazzarWorkerManager(Greenlet, EventEmitter):
     def worker_pool_maintainer(self):
         while True:
             if len(self.credentials) != 0 and len(self.available_bots) < self.pool_size:
-                credential = self.credentials.pop()
+                credential = self.credentials.pop(random.randint(0, len(self.credentials)-1))
                 self.starting_bots[credential.login] = DotaBot(self, credential)
                 self.starting_bots[credential.login].start()
             sleep(20)
