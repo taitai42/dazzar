@@ -45,10 +45,6 @@ class DazzarWorkerManager(Greenlet, EventEmitter):
         # Jobs management
         self.queue = QueueAdapter(self.app.config['RABBITMQ_LOGIN'], self.app.config['RABBITMQ_PASSWORD'])
 
-        # Events
-        self.on('bot_started', self.bot_started)
-        self.on('bot_end', self.bot_end)
-
     def _run(self):
         """Entry point of the manager.
         """

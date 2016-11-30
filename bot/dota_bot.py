@@ -61,7 +61,7 @@ class DotaBot(Greenlet, EventEmitter):
 
     def start_processing(self):
         self.print_info('dota ready')
-        self.worker_manager.emit('bot_started', self.credential)
+        self.worker_manager.bot_started(self.credential)
 
     # Work with jobs
 
@@ -361,4 +361,4 @@ class DotaBot(Greenlet, EventEmitter):
             sleep(10)
 
         self.client.disconnect()
-        self.worker_manager.emit('bot_end', self.credential)
+        self.worker_manager.bot_end(self.credential)

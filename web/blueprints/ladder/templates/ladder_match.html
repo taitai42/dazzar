@@ -14,6 +14,15 @@
 
     <ul>
         <li>Partie crée le {{ match.created|french_date }}</li>
+        <li>Ladder
+        {% if match.section == 'high' %}
+            <span class="redText">Haut</span>.
+        {% elif match.section == 'medium' %}
+            <span class="greenText">Moyen</span>.
+        {% else %}
+            <span class="blueText">Bas</span>.
+        {% endif %}
+        </li>
         <li>État du match -
             {% if match.status == 0 %}Un bot va créer la game.
             {% elif match.status == 1 %}La game est crée, le bot invite les joueurs avant de lancer.
@@ -31,6 +40,13 @@
                     <li>Mot de passe du match "{{ match.password }}" (si vous ne recevez pas l'invitation du bot)</li>
                 {% endif %}
             {% endfor %}
+        {% endif %}
+        {% if match.radiant_win is not none %}
+            {% if match.radiant_win %}
+            <li>Ce match a été remporté par le <span class="greenText">Radiant</span>.</li>
+            {% elif not match.radiant_win %}
+            <li>Ce match a été remporté par le <span class="redTest">Dire</span>.</li>
+            {% endif %}
         {% endif %}
     </ul>
 
@@ -74,6 +90,14 @@
                         {% endif %}
                         </span>
                     {% endif %}
+                    {% if player.is_leaver %}
+                    <span data-toggle="tooltip" data-placement="bottom" title="Leave"
+                          class="logout glyphicon glyphicon-fire" aria-hidden="true"></span>
+                    {% endif %}
+                    {% if player.is_dodge %}
+                    <span data-toggle="tooltip" data-placement="bottom" title="Dodge"
+                          class="logout glyphicon glyphicon-flash" aria-hidden="true"></span>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -106,6 +130,7 @@
                 {% for player in match.players %}
                     {% if current_user.id == player.player_id %}
                         var snd = new Audio("{{ url_for('static', filename='river_vial.mp3')}}");
+                        snd.volume = 0.5
                         snd.play();
                     {% endif %}
                 {% endfor %}
