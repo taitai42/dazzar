@@ -186,4 +186,17 @@ def make_blueprint(job_queue):
                 db.session.commit()
         return redirect(url_for('ladder_blueprint.match', match_id=match_id))
 
+    @ladder_blueprint.route('/ladder/match/outcome/<int:match_id>/<string:outcome>')
+    @login_required
+    def change_outcome(match_id, outcome):
+        if current_user.has_permission("admin"):
+            match_requested = Match.query.filter_by(id=match_id).first_or_404()
+            if match_requested.status in [constants.MATCH_STATUS_CANCELLED, constants.MATCH_STATUS_ENDED]:
+                match_requested.status = constants.MATCH_STATUS_ENDED
+                radiant_win = outcome == 'Radiant'
+                match_requested.radiant_win = radiant_win
+                db.session.commit()
+
+        return redirect(url_for('ladder_blueprint.match', match_id=match_id))
+
     return ladder_blueprint

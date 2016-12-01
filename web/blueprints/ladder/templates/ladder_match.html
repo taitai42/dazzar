@@ -4,14 +4,6 @@
 
     <h2>Dazzar Game {{ match.id }}</h2>
 
-    {% if current_user.is_authenticated
-        and current_user.has_permission("admin")
-        and match.status != 2
-        and match.status != 4
-    %}
-        <p><a href="{{ url_for('ladder_blueprint.cancel_match', match_id=match.id) }}">Annuler ce match</a></p>
-    {% endif %}
-
     <ul>
         <li>Partie crée le {{ match.created|french_date }}</li>
         <li>Ladder
@@ -45,12 +37,13 @@
             {% if match.radiant_win %}
             <li>Ce match a été remporté par le <span class="greenText">Radiant</span>.</li>
             {% elif not match.radiant_win %}
-            <li>Ce match a été remporté par le <span class="redTest">Dire</span>.</li>
+            <li>Ce match a été remporté par le <span class="redText">Dire</span>.</li>
             {% endif %}
         {% endif %}
     </ul>
 
-    <p>Notes: Respectez les teams/slots pour ne pas être kick. Un meilleur slot a la priorité du pick/lane.</p>
+    <p><span class="logout glyphicon glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+        Respectez les teams/slots pour ne pas être kick. Un meilleur slot a la priorité du pick/position.</p>
 
     <table id="players" class="display" cellspacing="0" width="100%">
         <thead>
@@ -103,6 +96,30 @@
             {% endfor %}
         </tbody>
     </table>
+
+    {% if current_user.is_authenticated and current_user.has_permission("admin") %}
+    <br />
+    <div class="row">
+        <div class="col-md-6 col-md-offset-4">
+            <p>Actions d'administration</p>
+            <ul>
+                {% if match.status not in [ 2, 4 ] %}
+                <li>
+                    <a href="{{ url_for('ladder_blueprint.cancel_match', match_id=match.id) }}">Annuler ce match</a>
+                </li>
+                {% endif %}
+                {% if match.status in [ 2, 4 ] %}
+                    {% if match.status == 2 or not match.radiant_win %}
+                        <li><a href="{{ url_for('ladder_blueprint.change_outcome', match_id=match.id, outcome='Radiant') }}">Déclarer Radiant gagnant.</a></li>
+                    {% endif %}
+                    {% if match.status == 2 or match.radiant_win %}
+                        <li><a href="{{ url_for('ladder_blueprint.change_outcome', match_id=match.id, outcome='Dire') }}">Déclarer Dire gagnant.</a></li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
 
 {% endblock %}
 

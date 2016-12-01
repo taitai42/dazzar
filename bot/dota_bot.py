@@ -63,6 +63,10 @@ class DotaBot(Greenlet, EventEmitter):
         self.print_info('dota ready')
         self.worker_manager.bot_started(self.credential)
 
+    def closed_dota(self):
+        if not self.quit:
+            self.print_info('dota notready')
+
     # Work with jobs
 
     def new_job(self, job):
@@ -347,6 +351,7 @@ class DotaBot(Greenlet, EventEmitter):
 
         self.dota.on('error', self.print_error)
         self.dota.on('ready', self.start_processing)
+        self.dota.on('notready', self.closed_dota)
 
         self.dota.on('scan_profile', self.scan_profile)
         self.dota.on('profile_card', self.scan_profile_result)
