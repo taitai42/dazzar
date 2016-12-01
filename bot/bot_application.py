@@ -19,7 +19,7 @@ class Credentials:
         self.password = password
 
 
-class DazzarWorkerManager(Greenlet, EventEmitter):
+class DazzarWorkerManager(Greenlet):
     """Master class for the worker part.
     The manager is responsible of the different Dota bots.
     """
@@ -28,7 +28,6 @@ class DazzarWorkerManager(Greenlet, EventEmitter):
         Greenlet.__init__(self)
 
         self.app = create_app()
-        self.pool_size = self.app.config['STEAM_BOT_COUNT']
 
         # Parse credentials
         self.credentials = []
@@ -37,9 +36,7 @@ class DazzarWorkerManager(Greenlet, EventEmitter):
             password = self.app.config['STEAM_BOT{0}_PASSWORD'.format(i)]
             self.credentials.append(Credentials(login, password))
 
-        # Init thread pool
-        self.starting_bots = {}
-        self.available_bots = {}
+        # Workers
         self.working_bots = {}
 
         # Jobs management
@@ -48,42 +45,22 @@ class DazzarWorkerManager(Greenlet, EventEmitter):
     def _run(self):
         """Entry point of the manager.
         """
-
-        maintainer = spawn(self.worker_pool_maintainer)
-        jobs = spawn(self.get_job)
-
-        maintainer.start()
-        jobs.start()
-        joinall([maintainer, jobs])
-
-    def worker_pool_maintainer(self):
-        while True:
-            if len(self.credentials) != 0 and len(self.available_bots) < self.pool_size:
-                credential = self.credentials.pop(random.randint(0, len(self.credentials)-1))
-                self.starting_bots[credential.login] = DotaBot(self, credential)
-                self.starting_bots[credential.login].start()
-            sleep(20)
-
-    def get_job(self):
         while True:
             self.queue.refresh()
 
-            if len(self.available_bots) != 0:
+            if len(self.credentials) != 0:
                 message = self.queue.consume()
                 if message is not None:
                     job = pickle.loads(message)
-                    login, bot = self.available_bots.popitem()
-                    self.working_bots[login] = bot
-                    bot.emit('new_job', job)
+                    credential = self.credentials.pop(random.randint(0, len(self.credentials)-1))
+                    g = DotaBot(worker_manager=self, credential=credential, job=job)
+                    g.start()
+                    self.working_bots[credential.login] = g
                     self.queue.ack_last()
-            sleep(5)
-
-    def bot_started(self, credential):
-        g = self.starting_bots.pop(credential.login)
-        self.available_bots[credential.login] = g
+            sleep(1)
 
     def bot_end(self, credential):
-        g = self.working_bots.pop(credential.login)
+        self.working_bots.pop(credential.login)
         self.credentials.append(credential)
 
 

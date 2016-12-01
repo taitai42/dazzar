@@ -16,7 +16,7 @@
         {% endif %}
         </li>
         <li>État du match -
-            {% if match.status == 0 %}Un bot va créer la game.
+            {% if match.status == 0 %}Le bot est en train de s'initialiser pour créer la partie.
             {% elif match.status == 1 %}La game est crée, le bot invite les joueurs avant de lancer.
             {% elif match.status == 2 %}La partie a été annulée (dodge/erreur).
             {% elif match.status == 3 %}La partie est en cours dans Dota.

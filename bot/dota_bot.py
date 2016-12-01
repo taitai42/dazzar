@@ -19,7 +19,7 @@ import common.constants as constants
 class DotaBot(Greenlet, EventEmitter):
     """A worker thread, connected to steam and processing jobs.
     """
-    def __init__(self, worker_manager, credential):
+    def __init__(self, worker_manager, credential, job):
         Greenlet.__init__(self)
 
         self.credential = credential
@@ -28,11 +28,12 @@ class DotaBot(Greenlet, EventEmitter):
         self.login = self.credential.login
         self.password = self.credential.password
 
-        self.client = None
-        self.dota = None
-        self.app = None
+        self.client = SteamClient()
+        self.dota = dota2.Dota2Client(self.client)
+        self.app = create_app()
 
-        self.current_job = None
+        self.current_job = job
+        self.job_started = False
         self.quit = False
 
         self.match = None
@@ -42,6 +43,22 @@ class DotaBot(Greenlet, EventEmitter):
         self.invite_timer = None
         self.missing_players = None
         self.wrong_team_players = None
+
+        self.client.on('connected', self.login_bot)
+        self.client.on('logged_on', self.start_dota)
+        self.client.on('error', self.print_error)
+
+        self.dota.on('error', self.print_error)
+        self.dota.on('ready', self.start_processing)
+        self.dota.on('notready', self.closed_dota)
+
+        self.dota.on('scan_profile', self.scan_profile)
+        self.dota.on('profile_card', self.scan_profile_result)
+
+        self.dota.on('vip_game', self.vip_game)
+        self.dota.on(dota2.features.Lobby.EVENT_LOBBY_NEW, self.vip_game_created)
+        self.dota.on(dota2.features.Lobby.EVENT_LOBBY_CHANGED, self.game_update)
+
 
     # Manage Clients
 
@@ -61,16 +78,16 @@ class DotaBot(Greenlet, EventEmitter):
 
     def start_processing(self):
         self.print_info('dota ready')
-        self.worker_manager.bot_started(self.credential)
+        if not self.job_started :
+            self.job_started = True
+            self.compute_job()
 
     def closed_dota(self):
-        if not self.quit:
-            self.print_info('dota notready')
+        self.print_info('dota notready')
 
     # Work with jobs
 
-    def new_job(self, job):
-        self.current_job = job
+    def compute_job(self):
         self.print_info('Processing new job of type %s' % self.current_job.type)
 
         if self.current_job.type == JobType.ScanProfile:
@@ -339,28 +356,7 @@ class DotaBot(Greenlet, EventEmitter):
 
     # Main run
     def _run(self):
-        self.client = SteamClient()
-        self.dota = dota2.Dota2Client(self.client)
-        self.app = create_app()
-
-        self.on('new_job', self.new_job)
-
-        self.client.on('connected', self.login_bot)
-        self.client.on('logged_on', self.start_dota)
-        self.client.on('error', self.print_error)
-
-        self.dota.on('error', self.print_error)
-        self.dota.on('ready', self.start_processing)
-        self.dota.on('notready', self.closed_dota)
-
-        self.dota.on('scan_profile', self.scan_profile)
-        self.dota.on('profile_card', self.scan_profile_result)
-
-        self.dota.on('vip_game', self.vip_game)
-        self.dota.on(dota2.features.Lobby.EVENT_LOBBY_NEW, self.vip_game_created)
-        self.dota.on(dota2.features.Lobby.EVENT_LOBBY_CHANGED, self.game_update)
-
-        self.client.connect(retry=None, delay=random.randint(1, 5))
+        self.client.connect(retry=None)
 
         while not self.quit:
             sleep(10)

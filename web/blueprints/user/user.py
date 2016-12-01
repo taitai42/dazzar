@@ -177,29 +177,32 @@ def make_blueprint(job_queue):
             db.session().commit()
         return redirect(url_for('user_blueprint.user', steam_id=steam_id))
 
-    @user_blueprint.route('/user/scan')
+    @user_blueprint.route('/user/scan/<int:user_id>')
     @login_required
-    def user_scan():
+    def user_scan(user_id):
         """Queue a job to check the solo MMR of the selected user.
         """
-        if current_user.profile_scan_info is None:
-            current_user.profile_scan_info = ProfileScanInfo(current_user)
-        elif datetime.utcnow() - current_user.profile_scan_info.last_scan_request < timedelta(minutes=5):
-            return redirect(url_for('user_blueprint.user', steam_id=current_user.id))
+        if current_user.id == user_id or current_user.has_permission(constants.PERMISSION_ADMIN):
+            target_user = User.query.filter_by(id=user_id).first()
+            if target_user is not None:
+                if target_user.profile_scan_info is None:
+                    target_user.profile_scan_info = ProfileScanInfo(target_user)
 
-        current_user.profile_scan_info.last_scan_request = datetime.utcnow()
-        db.session.commit()
+                if current_user.has_permission(constants.PERMISSION_ADMIN) or \
+                   datetime.utcnow() - target_user.profile_scan_info.last_scan_request > timedelta(minutes=5):
 
-        job_queue.produce(pickle.dumps(Job(JobType.ScanProfile, steam_id=current_user.id)))
+                    target_user.profile_scan_info.last_scan_request = datetime.utcnow()
+                    db.session.commit()
+                    job_queue.produce(pickle.dumps(Job(JobType.ScanProfile, steam_id=target_user.id)))
 
-        return redirect(url_for('user_blueprint.user', steam_id=current_user.id))
+        return redirect(url_for('user_blueprint.user', steam_id=user_id))
 
     @user_blueprint.route('/user/section/<int:steam_id>/<string:ladder>')
     @login_required
     def user_section(steam_id, ladder):
         target_user = db.session().query(User).filter_by(id=steam_id).first()
-        if target_user is not None and\
-            ladder in [constants.LADDER_HIGH, constants.LADDER_MEDIUM, constants.LADDER_LOW] and\
+        if target_user is not None and \
+                        ladder in [constants.LADDER_HIGH, constants.LADDER_MEDIUM, constants.LADDER_LOW] and \
                 current_user.has_permission(constants.PERMISSION_ADMIN):
             target_user.section = ladder
             scoreboard = Scoreboard.query.filter_by(user_id=target_user.id, ladder_name=ladder).first()

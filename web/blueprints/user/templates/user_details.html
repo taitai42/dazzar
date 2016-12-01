@@ -65,7 +65,7 @@
             Vous devez afficher votre MMR sur votre profil Dota pour qu'il soit détecté.
             <br />
             {% if scan_possible %}
-                <a href="{{ url_for('user_blueprint.user_scan') }}">Cliquez-ici</a> pour lancer un scan de votre profil Dota.
+                <a href="{{ url_for('user_blueprint.user_scan', user_id=current_user.id) }}">Cliquez-ici</a> pour lancer un scan de votre profil Dota.
             {% else %}
                 Vous ne pouvez lancer un scan qu'une fois toutes les 5 minutes, rafraîchissez votre de page dans un instant pour avoir le résultat.
             {% endif %}
@@ -101,6 +101,9 @@
                 </li>
                 <li>
                     <a href="{{ url_for('user_blueprint.user_section', steam_id=user.id, ladder='low') }}">Forcer ladder low</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('user_blueprint.user_scan', user_id=user.id) }}">Forcer scan</a>
                 </li>
             </ul>
         </div>
