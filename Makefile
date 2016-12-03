@@ -16,18 +16,18 @@ db-stop:
 
 # migrate database from models
 db-migrate: build
-	-docker run --rm --name dazzar_migrate --link dazzar_postgres --link dazzar_rabbitmq -v $$(pwd)/migrations:/migrations -w /dazzar -e CFG=../common/cfg/settings.cfg -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
+	-docker run --rm --name dazzar_migrate --link dazzar_postgres --link dazzar_rabbitmq -v $$(pwd)/migrations:/migrations -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db migrate --directory /migrations
 	sudo rm -rf migrations/__pycache__ migrations/versions/__pycache__
 	sudo chown -R `stat . -c %u:%g` migrations/versions/*
 
 
 # upgrade database on running postgres
 db-upgrade: build
-	docker run --rm --name dazzar_upgrade --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar -e CFG=../common/cfg/settings.cfg -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db upgrade
+	docker run --rm --name dazzar_upgrade --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db upgrade
 
 # downgrade database on running postgres
 db-downgrade: build
-	docker run --rm --name dazzar_upgrade --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar -e CFG=../common/cfg/settings.cfg -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db downgrade
+	docker run --rm --name dazzar_upgrade --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar -e FLASK_APP=/dazzar/web/web_application.py dazzar_web flask db downgrade
 
 ###########
 # General #
@@ -46,11 +46,11 @@ all-stop:
 
 # start all
 all-start:
-	CFG=../common/cfg/settings.cfg docker-compose -p dazzar -f docker/docker-compose.yml up -d --build
+	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build
 
 # start web prod
 web-start:
-	CFG=../common/cfg/settings.cfg docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_web
+	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_web
 
 # start web prod
 web-stop:
@@ -59,11 +59,11 @@ web-stop:
 
 # start web dev
 web-run:
-	CFG=../common/cfg/settings-dev.cfg docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_web
+	docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_web
 
 # start bot prod
 bot-start:
-	CFG=../common/cfg/settings.cfg docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_bot
+	docker-compose -p dazzar -f docker/docker-compose.yml up -d --build dazzar_bot
 
 # stop bot prod
 bot-stop:
@@ -72,16 +72,19 @@ bot-stop:
 
 # start bot dev
 bot-run:
-	CFG=../common/cfg/settings-dev.cfg docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_bot
+	docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_bot
 
 # scripts
 SCRIPT?=make_admin -i 76561197961298382
 script: build
-	docker run --rm --name dazzar_script --link dazzar_postgres --link dazzar_rabbitmq -e CFG=../common/cfg/settings.cfg -w /dazzar dazzar_web python3 /dazzar/common/scripts.py $(SCRIPT)
+	docker run --rm --name dazzar_script --link dazzar_postgres --link dazzar_rabbitmq -w /dazzar dazzar_web python3 /dazzar/common/scripts.py $(SCRIPT)
 
-# build
+# builds
 build:
 	docker-compose -p dazzar -f docker/docker-compose.yml build
+
+build-full:
+	docker-compose -p dazzar -f docker/docker-compose.yml build --no-cache
 
 # clean docker images
 clean:

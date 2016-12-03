@@ -1,5 +1,4 @@
-import math
-from datetime import datetime
+from datetime import datetime, timedelta
 import string
 import random
 
@@ -118,7 +117,7 @@ class ProfileScanInfo(db.Model):
 
     def __init__(self, user):
         self.id = user.id
-        self.last_scan_request = datetime.utcnow()
+        self.last_scan_request = datetime(year=2000, month=1, day=1)
         self.last_scan = None
 
 

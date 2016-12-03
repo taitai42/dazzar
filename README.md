@@ -42,7 +42,7 @@ Other commands
 
 ## About configurations
 
-Some configuration files are cyphered using [transcrypt](https://github.com/elasticdog/transcrypt) and a secret key. However, you can have a peek at the structure of such files watching their `*.example` couterpardt. These files are `common/settings.cfg` and `docker/dazzar_postgres/conf.env`
+Some configurations files are necessary to run the project. Because of secrets, they are not integrated into the depot. However, you can have a peek at the structure of such files watching their `*.example` counterpart. These files are `common/cfg/settings.cfg`, `docker/dazzar_postgres/conf.env` and `docker/dazzar_rabbitmq/conf.env`.
 
 ## Details
 

@@ -1,2 +1,5 @@
 .idea
 __pycache__
+common/cfg/settings.cfg
+docker/dazzar_postgres/conf.env
+docker/dazzar_rabbitmq/conf.env
