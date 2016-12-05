@@ -1,23 +1,35 @@
 import pickle
 
-from common.helpers import _jinja2_filter_french_date
 from flask import Blueprint, current_app, request, url_for, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
+from common.helpers import _jinja2_filter_french_date
 from common.models import db, User, QueuedPlayer, Match, Scoreboard
 from common.job_queue import JobCreateGame
 import common.constants as constants
 
 
 def make_blueprint(job_queue):
+    """Factory to create the Blueprint responsible for the ladder features.
+
+    Args:
+        job_queue: `QueueAdapter` to send jobs to the Dota bots.
+    Returns:
+        `Blueprint` handling ladder features.
+    """
 
     ladder_blueprint = Blueprint('ladder_blueprint', __name__, template_folder='templates')
 
     @ladder_blueprint.route('/ladder/play')
     @login_required
     def ladder_play():
-        """Page to enter the league queue.
-        Display the queue status and enter/quit if user can play."""
+        """Returns the page to enter the league queue.
+
+        Display the queue status and enter/quit if user can play.
+
+        Returns:
+            Generated page of the queue status iff the user is not in a game, redirects to the match page otherwise.
+        """
         if current_user.current_match is not None:
             return redirect(url_for('ladder_blueprint.match', match_id=current_user.current_match))
 
@@ -37,9 +49,13 @@ def make_blueprint(job_queue):
     @ladder_blueprint.route('/ladder/open')
     @login_required
     def ladder_open():
-        """Open or close the ladder."""
+        """Open or close the ladders
+
+        Returns:
+            Redirect to the page of the queue status.
+        """
         if current_user.has_permission('admin'):
-            for user in QueuedPlayer.query\
+            for user in QueuedPlayer.query \
                     .all():
                 db.session.delete(user)
             db.session.commit()
@@ -49,29 +65,48 @@ def make_blueprint(job_queue):
 
     @ladder_blueprint.route('/ladder/scoreboard/<string:ladder>')
     def ladder_scoreboard(ladder):
-        """Displays the league scoreboard."""
+        """Displays the league scoreboard.
+
+        Returns:
+            Page with all the scoreboards.
+        """
         return render_template('ladder_scoreboard.html', ladder=ladder)
 
     @ladder_blueprint.route('/api/scoreboard/<string:ladder>')
     def api_scoreboard(ladder):
-        """Endpoint for the datatable to request user score."""
+        """API endpoint for the datatable to request scoreboards.
 
+        Args:
+            ladder: ladder name (cf. constants).
+        Parameters:
+            draw: request identifier, returned in the answer.
+            length: entries to return.
+            start: offset for the entry.
+        Returns:
+            `JSON` containing scoreboard entries sorted with the following design
+             {
+                "draw": <draw parameter>
+                "recordsTotal": <total entries>
+                "recordsFiltered": <total entries>
+                "data": [ entry.data ]
+            }
+        """
         draw = request.args.get('draw', '1')
         length = int(request.args.get('length', '20'))
         start = int(request.args.get('start', '0'))
         if ladder not in [constants.LADDER_HIGH, constants.LADDER_LOW, constants.LADDER_MEDIUM]:
             ladder = constants.LADDER_HIGH
 
-        query = db.session().query(User, Scoreboard)\
-            .filter(User.id == Scoreboard.user_id)\
-            .filter(Scoreboard.ladder_name == ladder)\
-            .filter(Scoreboard.matches != 0)\
-            .filter(User.nickname.isnot(None))\
+        query = db.session().query(User, Scoreboard) \
+            .filter(User.id == Scoreboard.user_id) \
+            .filter(Scoreboard.ladder_name == ladder) \
+            .filter(Scoreboard.matches != 0) \
+            .filter(User.nickname.isnot(None)) \
             .order_by(Scoreboard.mmr.desc(), User.solo_mmr.desc())
 
         count = query.count()
 
-        query = query.offset(start)\
+        query = query.offset(start) \
             .limit(length)
 
         data = []
@@ -90,13 +125,30 @@ def make_blueprint(job_queue):
 
     @ladder_blueprint.route('/ladder/matches')
     def ladder_matches():
-        """Displays the league matches."""
+        """Displays the list of all ladder matches.
+
+        Returns:
+            Page listing all ladder matches.
+        """
         return render_template('ladder_matches.html')
 
     @ladder_blueprint.route('/api/ladder/matches')
     def api_matches():
-        """Endpoint for the datatable to request matches."""
+        """API endpoint for the datatable to request matches.
 
+        Parameters:
+            draw: request identifier, returned in the answer.
+            length: entries to return.
+            start: offset for the entry.
+        Returns:
+            `JSON` containing match entries sorted with the following design
+             {
+                "draw": <draw parameter>
+                "recordsTotal": <total entries>
+                "recordsFiltered": <total entries>
+                "data": [ entry.data ]
+            }
+        """
         draw = request.args.get('draw', '1')
         length = int(request.args.get('length', '20'))
         start = int(request.args.get('start', '0'))
@@ -122,10 +174,12 @@ def make_blueprint(job_queue):
 
     @ladder_blueprint.route('/ladder/match/<int:match_id>')
     def match(match_id):
-        """Page to give details of a match
+        """Page to give details of a match.
 
-        Parameters
-            match_id - match to return the detailed page of
+        Args:
+            match_id: match ID to return the detailed page of.
+        Returns:
+            The page generated with the match details.
         """
         match = db.session().query(Match).filter(Match.id == match_id).first()
         return render_template('ladder_match.html', match=match)
@@ -133,7 +187,11 @@ def make_blueprint(job_queue):
     @ladder_blueprint.route('/queue')
     @login_required
     def queue():
-        """Queue or dequeue current user."""
+        """Queue or dequeue the current user from it ladder queue.
+
+        Returns:
+            Redirection to the queue status.
+        """
         if current_user.current_match is None and current_user.section is not None:
             remove_queue = QueuedPlayer.query.filter_by(id=current_user.id).first()
             if remove_queue is not None:
@@ -143,8 +201,8 @@ def make_blueprint(job_queue):
                 new_queue = QueuedPlayer(current_user.id, current_user.section)
                 db.session().add(new_queue)
                 db.session().commit()
-                
-                query = QueuedPlayer.query.filter_by(queue_name=current_user.section)\
+
+                query = QueuedPlayer.query.filter_by(queue_name=current_user.section) \
                     .order_by(QueuedPlayer.added).limit(10)
                 if query.count() >= 10:
                     # Create a game
@@ -168,10 +226,12 @@ def make_blueprint(job_queue):
     @ladder_blueprint.route('/ladder/match/cancel/<int:match_id>')
     @login_required
     def cancel_match(match_id):
-        """Page to give details of a match
+        """Admin tool to cancel a match not already finished or cancelled.
 
-        Parameters
-            match_id - match to return the detailed page of
+        Args:
+            match_id: match ID to cancel.
+        Returns:
+            Redirection to the match detail page.
         """
         if current_user.has_permission("admin"):
             match_requested = Match.query.filter_by(id=match_id).first_or_404()
@@ -185,6 +245,14 @@ def make_blueprint(job_queue):
     @ladder_blueprint.route('/ladder/match/outcome/<int:match_id>/<string:outcome>')
     @login_required
     def change_outcome(match_id, outcome):
+        """Admin tool to change the outcome of a match finished or cancelled.
+
+        Args:
+            match_id: match ID to change the outcome of.
+            outcome: 'Radiant' or 'Dire' as the new side winner of the match.
+        Returns:
+            Redirection to the match detail page.
+        """
         if current_user.has_permission("admin"):
             match_requested = Match.query.filter_by(id=match_id).first_or_404()
             if match_requested.status in [constants.MATCH_STATUS_CANCELLED, constants.MATCH_STATUS_ENDED]:

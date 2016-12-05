@@ -1,27 +1,36 @@
 from datetime import datetime, timedelta
 
-import logging
-
 from flask import Blueprint, jsonify, request, url_for, redirect, render_template
 from flask_login import current_user, login_required
 
-
 from common.models import db, User, UserMixDetail
 
-def make_blueprint():
 
+def make_blueprint():
+    """Factory to create the Blueprint responsible for the mix features.
+
+    Returns:
+        `Blueprint` handling mix features.
+    """
     mix_blueprint = Blueprint('mix_blueprint', __name__, template_folder='templates')
 
     @mix_blueprint.route('/mix/users')
     def mix_users():
+        """Generate the page listing all mix.
+
+        Returns:
+            The page listing all user ads for teammates.
+        """
         return render_template('mix_users.html')
 
     @mix_blueprint.route('/mix/<int:mix_id>')
     def mix(mix_id):
-        """Page to give details of a mix.
+        """Access the details of a mix.
 
-        Parameters
-            mix_id - mix to return the detailed page of
+        Args;
+            mix_id: mix ID to return the detailed page of.
+        Returns:
+            The page with the details of the mix.
         """
         mix_requested = UserMixDetail.query.filter_by(id=mix_id).first_or_404()
         return render_template('mix_details.html', mix=mix_requested)
@@ -29,6 +38,22 @@ def make_blueprint():
     @mix_blueprint.route('/mix/edit', methods=['GET', 'POST'])
     @login_required
     def mix_edit():
+        """Access the mix edit page or post a change.
+
+        Methods;
+            GET: access the mix edit page.
+                Returns:
+                    The page to edit the mix of the current user.
+            POST: update the mix details.
+                Args:
+                    enabled: `Boolean` if the user wants the ad visible or not.
+                    title: `str` title of the ad.
+                    goal: `str` aim of the ad.
+                    level: `str` level of the ad.
+                    description: `str` Markdown description of the ad.
+                Returns:
+                    Redirect to the page with the mix details of the current user..
+        """
         mix_requested = current_user.user_mix_detail
 
         if request.method == 'GET':
@@ -55,8 +80,21 @@ def make_blueprint():
 
     @mix_blueprint.route('/api/mixs')
     def api_mixs():
-        """Endpoint for the datatable to request mixs."""
+        """API endpoint for the datatable to request mixs.
 
+        Parameters:
+            draw: request identifier, returned in the answer.
+            length: entries to return.
+            start: offset for the entry.
+        Returns:
+            `JSON` containing mix entries sorted with the following design
+             {
+                "draw": <draw parameter>
+                "recordsTotal": <total entries>
+                "recordsFiltered": <total entries>
+                "data": [ entry.data ]
+            }
+        """
         draw = request.args.get('draw', '1')
         length = int(request.args.get('length', '20'))
         start = int(request.args.get('start', '0'))
@@ -84,6 +122,5 @@ def make_blueprint():
             "data": data
         }
         return jsonify(results)
-
 
     return mix_blueprint

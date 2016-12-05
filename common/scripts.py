@@ -36,7 +36,7 @@ def recompute_scoreboards():
     db.session.commit()
 
     # Recreate user current scoreboard
-    for user in User.query.filter(User.section!=None).all():
+    for user in User.query.filter(User.section != None).all():
         scoreboard = Scoreboard(user=user, ladder_name=user.section)
         db.session.add(scoreboard)
 
@@ -60,7 +60,7 @@ def recompute_scoreboards():
                 scoreboard.mmr = player.mmr_after
                 scoreboard.leave += 1
                 if match.radiant_win is not None:
-                    scoreboard.matches +=1
+                    scoreboard.matches += 1
             else:
                 if match.radiant_win is not None:
                     scoreboard.matches += 1
@@ -75,6 +75,7 @@ def recompute_scoreboards():
                         scoreboard.mmr = player.mmr_after
                         scoreboard.loss += 1
     db.session.commit()
+
 
 #######################
 # Setup Manage Script #

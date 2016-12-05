@@ -3,6 +3,7 @@
 #####################
 
 import locale
+
 locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
 
 from flask import Flask, render_template
@@ -16,11 +17,15 @@ from common.job_queue import QueueAdapter
 from common.models import db
 from common.helpers import _jinja2_filter_french_date
 
+
 def create_app():
+    """Factory to create the Flask application with configuration and database init."""
     app = Flask(__name__)
     load_config(app.config)
     db.init_app(app)
     return app
+
+
 app = create_app()
 migrate = Migrate(app, db)
 Markdown(app)
@@ -33,7 +38,6 @@ login_manager.login_view = 'login_blueprint.login'
 
 app.add_template_filter(_jinja2_filter_french_date, name='french_date')
 
-
 #######################
 # Blueprints Register #
 #######################
@@ -44,11 +48,11 @@ import web.blueprints.user.user as user_blueprint
 import web.blueprints.ladder.ladder as ladder_blueprint
 import web.blueprints.mix.mix as mix_blueprint
 
-
 app.register_blueprint(login_blueprint.make_blueprint(oid, login_manager))
 app.register_blueprint(user_blueprint.make_blueprint(job_queue))
 app.register_blueprint(ladder_blueprint.make_blueprint(job_queue))
 app.register_blueprint(mix_blueprint.make_blueprint())
+
 
 ##########
 # Routes #
@@ -66,10 +70,16 @@ def index():
 ############################
 
 def refresh_rabbitmq(io_loop):
+    """Ping the rabbitmq to avoid TCP connection closing.
+
+    Args:
+        io_loop: Tornado IO_LOOP the rabbitmq ping process is linked to.
+    """
     global job_queue
     job_queue.refresh()
 
     loop.call_later(60, refresh_rabbitmq, io_loop)
+
 
 if __name__ == "__main__":
     from tornado.wsgi import WSGIContainer

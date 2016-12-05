@@ -12,16 +12,29 @@ import common.constants as constants
 
 
 def make_blueprint(job_queue):
+    """Factory to create the Blueprint responsible for the user features.
+
+    Args:
+        job_queue: `QueueAdapter` to send jobs to the Dota bots.
+    Returns:
+        `Blueprint` handling user features.
+    """
     user_blueprint = Blueprint('user_blueprint', __name__, template_folder='templates')
 
     @user_blueprint.route('/nickname', methods=['GET', 'POST'])
     @login_required
     def nickname():
-        """User nickname creation page.
+        """User nickname creation access point.
 
         Methods:
-            GET - give the page if nickname not setup
-            POST - setup the nickname if valid
+            GET: give the page to setup the user nickname.
+                Returns:
+                    The page to modify the nickname.
+            POST: setup the nickname if the input is valid.
+                Parameters:
+                    nickname: the nickname to use for the current user.
+                Returns:
+                    Redirects to the page to setup the nickname if there is an error or to index otherwise.
         """
         if current_user.nickname is not None:
             return redirect(url_for('index'))
@@ -45,11 +58,12 @@ def make_blueprint(job_queue):
     @user_blueprint.route('/nickname/delete/<int:steam_id>')
     @login_required
     def nickname_delete(steam_id):
-        """Delete user nickname if admin.
-        Force user to chose a new one.
+        """Tool for an admin to delete a user nickname. Force to choose a new one.
 
-        Parameters:
-            steam_id - user concerned
+        Args:
+            steam_id: user targeted.
+        Returns:
+            The user detail page.
         """
         steam_id = int(steam_id)
         target_user = db.session().query(User).filter_by(id=steam_id).first()
@@ -63,7 +77,12 @@ def make_blueprint(job_queue):
     @user_blueprint.route('/user/force_out/<int:steam_id>')
     @login_required
     def force_out(steam_id):
-        """
+        """Admin tool to force a player out of a specific match.
+
+        Args:
+            steam_id: user targeted.
+        Returns:
+            The user detail page.
         """
         steam_id = int(steam_id)
         target_user = db.session().query(User).filter_by(id=steam_id).first()
@@ -75,10 +94,12 @@ def make_blueprint(job_queue):
     @user_blueprint.route('/user/verify/<int:steam_id>')
     @login_required
     def verify_user(steam_id):
-        """Verify or Unverify an user
+        """Verify or un-verify an user
 
-        Parameters:
-            steam_id - user concerned
+        Args:
+            steam_id: user targeted.
+        Returns:
+            The user detail page.
         """
         steam_id = int(steam_id)
         target_user = db.session().query(User).filter_by(id=steam_id).first()
@@ -89,13 +110,30 @@ def make_blueprint(job_queue):
 
     @user_blueprint.route('/users')
     def users():
-        """Page to list all users of the website"""
+        """Access the page to list all (valid) users of the website.
+
+        Returns:
+            The page to list all users of the website.
+        """
         return render_template('user_list.html')
 
     @user_blueprint.route('/api/users')
     def api_users():
-        """Endpoint for the datatable to request users."""
+        """API endpoint for the datatable to request users.
 
+        Parameters:
+            draw: request identifier, returned in the answer.
+            length: entries to return.
+            start: offset for the entry.
+        Returns:
+            `JSON` containing user entries sorted with the following design
+             {
+                "draw": <draw parameter>
+                "recordsTotal": <total entries>
+                "recordsFiltered": <total entries>
+                "data": [ entry.data ]
+            }
+        """
         draw = request.args.get('draw', '1')
         search = request.args.get('search[value]', '')
         length = int(request.args.get('length', '20'))
@@ -130,10 +168,12 @@ def make_blueprint(job_queue):
 
     @user_blueprint.route('/user/<int:steam_id>')
     def user(steam_id):
-        """Page to give details of a user.
+        """Access to the page with details of a user.
 
-        Parameters
-            steam_id - user to return the detailed page of
+        Args:
+            steam_id: user ID to return the detailed page of.
+        Returns:
+            Page with the detailed information of the user.
         """
         user_requested = db.session().query(User).filter_by(id=steam_id).first()
         if user_requested is None:
@@ -150,6 +190,11 @@ def make_blueprint(job_queue):
     @user_blueprint.route('/user/profile')
     @login_required
     def user_profile():
+        """Access to the page with details of the current user.
+.
+        Returns:
+            Page with the detailed information of the current user.
+        """
         if (current_user.profile_scan_info is None or
                         datetime.utcnow() - current_user.profile_scan_info.last_scan_request > timedelta(minutes=5)):
             scan_possible = True
@@ -160,12 +205,12 @@ def make_blueprint(job_queue):
     @user_blueprint.route('/permission/<int:steam_id>/<string:permission>/<string:give>')
     @login_required
     def user_permission(steam_id, permission, give):
-        """Modify user permission according to parameters.
+        """Modify user permission of a specific user.
 
-        Parameters
-            steam_id - user to modify
-            permission - right to change
-            give - boolean to decide to add permission or remove
+        Args:
+            steam_id: user ID of the `User` to modify.
+            permission: `str` permission to change.
+            give: `Boolean` to specify a permission addition or removal.
         """
         give = give == 'True'
         target_user = db.session().query(User).filter_by(id=steam_id).first()
@@ -181,6 +226,11 @@ def make_blueprint(job_queue):
     @login_required
     def user_scan(user_id):
         """Queue a job to check the solo MMR of the selected user.
+
+        Args:
+            user_id: user ID of the `User` to scan.
+        Returns:
+            Redirection to the user detail page.
         """
         if current_user.id == user_id or current_user.has_permission(constants.PERMISSION_ADMIN):
             target_user = User.query.filter_by(id=user_id).first()
@@ -200,6 +250,14 @@ def make_blueprint(job_queue):
     @user_blueprint.route('/user/section/<int:steam_id>/<string:ladder>')
     @login_required
     def user_section(steam_id, ladder):
+        """Change the ladder the user is playing into.
+
+        Args:
+            steam_id: user ID of the `User` to change the ladder.
+            ladder: `str` ladder_name to put the user into (cf. constants).
+        Returns:
+            Redirection to the user detail page.
+        """
         target_user = db.session().query(User).filter_by(id=steam_id).first()
         if target_user is not None and \
                         ladder in [constants.LADDER_HIGH, constants.LADDER_MEDIUM, constants.LADDER_LOW] and \

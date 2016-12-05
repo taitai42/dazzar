@@ -28,8 +28,9 @@ class QueueAdapter:
     def _connect(self):
         """Initial connection to the queue manager."""
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='dazzar_rabbitmq',
-                                                                            credentials=pika.PlainCredentials(self.username,
-                                                                                                              self.password)))
+                                                                            credentials=pika.PlainCredentials(
+                                                                                self.username,
+                                                                                self.password)))
         self.channel = self.connection.channel()
         self.channel.basic_qos(prefetch_count=1)
         self.channel.queue_declare(queue='dazzar_jobs', durable=True)
