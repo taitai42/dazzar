@@ -7,11 +7,10 @@ from sqlalchemy.orm import joinedload_all
 from steam import SteamClient, SteamID
 import dota2
 from dota2.enums import DOTA_GC_TEAM, EMatchOutcome
-from dota2.features.Lobby import EVENT_LOBBY_NEW, EVENT_LOBBY_CHANGED
 
 from web.web_application import create_app
 from common.models import db, User, Match, PlayerInMatch, Scoreboard
-from common.job_queue import JobType
+from common.job_queue import Job, JobScan, JobCreateGame
 import common.constants as constants
 
 
@@ -63,8 +62,8 @@ class DotaBot(Greenlet, EventEmitter):
         self.dota.on('notready', self.closed_dota)
 
         self.dota.on('profile_card', self.scan_profile_result)
-        self.dota.on(EVENT_LOBBY_NEW, self.vip_game_created)
-        self.dota.on(EVENT_LOBBY_CHANGED, self.game_update)
+        self.dota.on(dota2.features.Lobby.EVENT_LOBBY_NEW, self.vip_game_created)
+        self.dota.on(dota2.features.Lobby.EVENT_LOBBY_CHANGED, self.game_update)
 
     def _run(self):
         """Start the main loop of the thread, connecting to Steam, waiting for the job to finish to close the bot."""
@@ -117,15 +116,15 @@ class DotaBot(Greenlet, EventEmitter):
 
     def compute_job(self):
         """Start the processing of the job with the appropriate handler."""
-        self.print_info('Processing new job of type %s' % self.job.type)
+        self.print_info('Processing new job of type %s' % type(self.job))
         if not self.job_started :
             self.job_started = True
         else:
             return
 
-        if self.job.type == JobType.ScanProfile:
+        if type(self.job) is JobScan:
             self.scan_profile()
-        elif self.job.type == JobType.VIPGame:
+        elif type(self.job) is JobCreateGame:
             self.vip_game()
         else:
             self.end_job_processing()
@@ -162,7 +161,7 @@ class DotaBot(Greenlet, EventEmitter):
             account_id: steam_id (as 32bits) of the profile result
             profile_card: profile information as a protobuff message
         """
-        self.print_info('Processing profile of user %s' % account_id)
+        self.print_info('Processing profile of user %s' % SteamID(account_id).as_64)
         solo_mmr = None
         for slot in profile_card.slots:
             if not slot.HasField('stat'):

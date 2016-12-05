@@ -1,15 +1,11 @@
-import re
-import logging
 import pickle
-from datetime import datetime, timezone, timedelta
-import pytz
 
 from common.helpers import _jinja2_filter_french_date
-from flask import Blueprint, current_app, request, url_for, abort, redirect, render_template, jsonify
+from flask import Blueprint, current_app, request, url_for, redirect, render_template, jsonify
 from flask_login import current_user, login_required
 
-from common.models import db, User, QueuedPlayer, Match, PlayerInMatch, Scoreboard
-from common.job_queue import Job, JobType
+from common.models import db, User, QueuedPlayer, Match, Scoreboard
+from common.job_queue import JobCreateGame
 import common.constants as constants
 
 
@@ -163,7 +159,7 @@ def make_blueprint(job_queue):
                         player.player.current_match = new_match.id
                     db.session.commit()
 
-                    job_queue.produce(pickle.dumps(Job(JobType.VIPGame, match_id=new_match.id)))
+                    job_queue.produce(pickle.dumps(JobCreateGame(match_id=new_match.id)))
 
                     return redirect(url_for('ladder_blueprint.ladder_play'))
 

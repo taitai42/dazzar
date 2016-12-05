@@ -1,5 +1,5 @@
 import pika
-from enum import IntEnum
+from abc import ABC, abstractmethod
 
 
 class QueueAdapter:
@@ -71,32 +71,29 @@ class QueueAdapter:
         self.connection.process_data_events()
 
 
-class JobType(IntEnum):
-    """Enumerate of possible job types to process by steam bots."""
-    ScanProfile = 0
-    VIPGame = 1
+class Job(ABC):
+    """A abstract job class used to pass orders from the flask application to the Dota workers."""
 
 
-class Job:
-    """A job class used to pass orders from the flask application to the Dota workers.
+class JobScan(Job):
+    """A scan profile job where the bot requests the Dota profile and update the database with information.
 
     Attributes:
-        type: A `JobType` to identify the job
-        steam_id: steam_id of a user if ScanProfile
-        match_id: match_id of a game if VIPGame
+        steam_id: Steam user id (as 64 bits) to scan.
+        scan_finish: Boolean indicating the end of the scan or not.
     """
 
-    def __init__(self, job_type=None, steam_id=None, match_id=None):
-        """Initialize a job with the necessary options.
-
-        TODO: Switch to class inheritance instead of optional parameters
-
-        Args:
-            job_type: `JobType` of the job
-            steam_id: steam_id (as 64 bits) of the user if ScanProfile
-            match_id: match_id of a game if VIPGame
-        """
-        self.type = job_type
+    def __init__(self, steam_id):
         self.steam_id = steam_id
-        self.match_id = match_id
         self.scan_finish = False
+
+
+class JobCreateGame(Job):
+    """A create game job where the bot creates a lobby for a game.
+
+    Attributes:
+        match_id: Id of the match to create from the database.
+    """
+
+    def __init__(self, match_id):
+        self.match_id = match_id
