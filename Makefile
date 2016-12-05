@@ -84,7 +84,7 @@ build:
 	docker-compose -p dazzar -f docker/docker-compose.yml build
 
 build-full:
-	docker-compose -p dazzar -f docker/docker-compose.yml build --no-cache
+	docker-compose -p dazzar -f docker/docker-compose.yml build --no-cache dazzar_web
 
 # clean docker images
 clean:

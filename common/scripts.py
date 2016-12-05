@@ -1,6 +1,3 @@
-import math
-import logging
-
 from flask_script import Manager
 
 from web.web_application import app, db
@@ -17,11 +14,10 @@ manager = Manager(app)
 
 @manager.option('-i', '--id', dest='steam_id', default='76561197961298382')
 def make_admin(steam_id):
-    """Make the user with the specified steam_id an Admin.
-    Useful for the first admin.
+    """Make the user with the specified steam_id an Admin. Useful for the first admin.
 
-    Attributes:
-        steam_id - user steam id to make admin
+    Args:
+        steam_id: user steam id (as 64bits) to make admin.
     """
     user = db.session().query(User).filter_by(id=steam_id).first()
     if user is None:
@@ -33,8 +29,7 @@ def make_admin(steam_id):
 
 @manager.command
 def recompute_scoreboards():
-    """Delete all current scoreboard aggregates and rebuild them from match data.
-    """
+    """Delete all current scoreboard aggregates and rebuild them from match data."""
 
     # Delete scoreboards
     Scoreboard.query.delete()
@@ -79,7 +74,6 @@ def recompute_scoreboards():
                         player.mmr_after = max(player.mmr_before - 50, 0)
                         scoreboard.mmr = player.mmr_after
                         scoreboard.loss += 1
-
     db.session.commit()
 
 #######################

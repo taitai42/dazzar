@@ -1,4 +1,4 @@
-"""/5 Multiple ladders and stats.
+"""5/ Multiple ladders and stats.
 
 Revision ID: 7b46ed274746
 Revises: db21e76e6868

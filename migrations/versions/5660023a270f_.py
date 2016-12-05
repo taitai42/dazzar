@@ -1,4 +1,4 @@
-"""/6 Remove not necessary vip_mmr
+"""6/ Remove not necessary vip_mmr
 
 Revision ID: 5660023a270f
 Revises: 7b46ed274746
