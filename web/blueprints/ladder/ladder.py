@@ -217,7 +217,7 @@ def make_blueprint(job_queue):
                         player.player.current_match = new_match.id
                     db.session.commit()
 
-                    job_queue.produce(pickle.dumps(JobCreateGame(match_id=new_match.id)))
+                    job_queue.produce(JobCreateGame(match_id=new_match.id))
 
                     return redirect(url_for('ladder_blueprint.ladder_play'))
 

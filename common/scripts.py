@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from flask_script import Manager
 
 from web.web_application import app, db
-from common.models import User, Scoreboard, Match
+from common.job_queue import QueueAdapter, JobScan
+from common.models import User, Scoreboard, Match, ProfileScanInfo
 import common.constants as constants
 
 manager = Manager(app)
@@ -76,6 +79,19 @@ def recompute_scoreboards():
                         scoreboard.loss += 1
     db.session.commit()
 
+
+@manager.command
+def scan_all_users():
+    """Queue the refresh scan of all users."""
+    job_queue = QueueAdapter(app.config['RABBITMQ_LOGIN'], app.config['RABBITMQ_PASSWORD'])
+    for user in User.query.all():
+        if user.profile_scan_info is None:
+            user.profile_scan_info = ProfileScanInfo(user)
+
+        user.profile_scan_info.last_scan_request = datetime.utcnow()
+        job_queue.produce(JobScan(steam_id=user.id))
+
+    db.session.commit()
 
 #######################
 # Setup Manage Script #

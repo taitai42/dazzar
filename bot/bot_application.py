@@ -67,10 +67,8 @@ class DazzarWorkerManager(Greenlet):
             self.queue.refresh()  # Ensure that the queue connection is not closed.
 
             if len(self.credentials) != 0:
-                message = self.queue.consume()
-                if message is not None:
-                    job = pickle.loads(message)
-
+                job = self.queue.consume()
+                if job is not None:
                     # Process the job with a new Dota bot
                     credential = self.credentials.pop(random.randint(0, len(self.credentials) - 1))
                     g = DotaBot(worker_manager=self, credential=credential, job=job)

@@ -243,7 +243,7 @@ def make_blueprint(job_queue):
 
                     target_user.profile_scan_info.last_scan_request = datetime.utcnow()
                     db.session.commit()
-                    job_queue.produce(pickle.dumps(JobScan(steam_id=target_user.id)))
+                    job_queue.produce(JobScan(steam_id=target_user.id))
 
         return redirect(url_for('user_blueprint.user', steam_id=user_id))
 

@@ -1,5 +1,7 @@
-import pika
 from abc import ABC, abstractmethod
+import pickle
+
+import pika
 
 
 class QueueAdapter:
@@ -39,11 +41,11 @@ class QueueAdapter:
         """Publish a message to add inside the queue.
 
         Args;
-            message: message to add inside the queue, pickled.
+            message: object to add inside the queue.
         """
         self.channel.basic_publish(exchange='',
                                    routing_key='dazzar_jobs',
-                                   body=message,
+                                   body=pickle.dumps(message),
                                    properties=pika.BasicProperties(
                                        delivery_mode=2,  # make message persistent
                                    ))
@@ -59,7 +61,7 @@ class QueueAdapter:
 
         if method_frame:
             self.method = method_frame
-            result = body
+            result = pickle.loads(body)
 
         return result
 

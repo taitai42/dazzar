@@ -67,6 +67,7 @@ class DotaBot(Greenlet, EventEmitter):
 
     def _run(self):
         """Start the main loop of the thread, connecting to Steam, waiting for the job to finish to close the bot."""
+        self.print_info('Connecting to Steam...')
         self.client.connect(retry=None)  # Try connecting with infinite retries
 
         while not self.job_finished:
@@ -425,4 +426,4 @@ class DotaBot(Greenlet, EventEmitter):
                 score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player_id).first()
                 score.mmr = player.mmr_after
                 score.matches += 1
-        db.session.commit()
+            db.session.commit()
