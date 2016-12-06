@@ -1,7 +1,6 @@
 import logging
 from gevent import Greenlet, sleep
 from datetime import datetime, timedelta
-from eventemitter import EventEmitter
 
 from sqlalchemy.orm import joinedload_all
 from steam import SteamClient, SteamID
@@ -14,7 +13,7 @@ from common.job_queue import Job, JobScan, JobCreateGame
 import common.constants as constants
 
 
-class DotaBot(Greenlet, EventEmitter):
+class DotaBot(Greenlet):
     """A worker thread, connecting to steam to process a unique job.
 
     Attributes:
@@ -38,7 +37,7 @@ class DotaBot(Greenlet, EventEmitter):
 
         self.client = SteamClient()
         self.dota = dota2.Dota2Client(self.client)
-        self.app = create_app()
+        self.app = self.worker_manager.app
 
         self.job_started = False
         self.job_finished = False
