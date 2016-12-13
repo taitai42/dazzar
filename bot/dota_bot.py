@@ -203,6 +203,7 @@ class DotaBot(Greenlet):
         with self.app.app_context():
             self.match = Match.query.filter_by(id=self.job.match_id).first()
             if self.match is None or self.match.status != constants.MATCH_STATUS_CREATION:
+                self.dota.leave_practice_lobby()
                 self.end_job_processing()
             else:
                 self.players = {}
@@ -216,8 +217,8 @@ class DotaBot(Greenlet):
                 for player_id, player in self.players.items():
                     db.session.expunge(player)
 
-        # Start the Dota lobby
-        self.dota.create_practice_lobby(password=self.match.password)
+                # Start the Dota lobby
+                self.dota.create_practice_lobby(password=self.match.password)
 
     def vip_game_created(self, message):
         """Callback fired when the Dota bot enters a lobby.
