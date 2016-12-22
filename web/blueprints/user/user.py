@@ -55,6 +55,53 @@ def make_blueprint(job_queue):
             return redirect(url_for('index'))
         abort(404)
 
+    @user_blueprint.route('/ban', methods=['GET'])
+    @login_required
+    def ban():
+        """User ban description page.
+
+        Returns:
+            Show the ban page if user is banned.
+        """
+        if current_user.ban_date is None or current_user.ban_date < datetime.utcnow():
+            return redirect(url_for('index'))
+        return render_template('user_ban.html')
+
+    @user_blueprint.route('/user/ban/<int:steam_id>/<int:time>', methods=['GET'])
+    @login_required
+    def user_ban(steam_id, time):
+        """Ban a user for some time.
+
+        Args:
+            steam_id: user targeted.
+            time: time to add to the ban.
+        """
+        target_user = User.query.filter_by(id=steam_id).first()
+        if target_user is not None and current_user.has_permission(constants.PERMISSION_ADMIN):
+            if target_user.ban_date is None or target_user.ban_date < datetime.utcnow():
+                target_user.ban_date = datetime.utcnow()
+            maximum_timedelta = datetime.max - target_user.ban_date - timedelta(days=1)
+            if maximum_timedelta < timedelta(minutes=time):
+                target_user.ban_date += maximum_timedelta
+            else:
+                target_user.ban_date += timedelta(minutes=time)
+            db.session.commit()
+        return redirect(url_for('user_blueprint.user', steam_id=steam_id))
+
+    @user_blueprint.route('/user/unban/<int:steam_id>', methods=['GET'])
+    @login_required
+    def user_unban(steam_id):
+        """Unban the target user.
+
+        Args:
+            steam_id: user targeted.
+        """
+        target_user = User.query.filter_by(id=steam_id).first()
+        if target_user is not None and current_user.has_permission(constants.PERMISSION_ADMIN):
+            target_user.ban_date = None
+            db.session.commit()
+        return redirect(url_for('user_blueprint.user', steam_id=steam_id))
+
     @user_blueprint.route('/nickname/delete/<int:steam_id>')
     @login_required
     def nickname_delete(steam_id):
@@ -185,7 +232,8 @@ def make_blueprint(job_queue):
             scan_possible = True
         else:
             scan_possible = False
-        return render_template('user_details.html', user=user_requested, scan_possible=scan_possible)
+        user_banned = user_requested.ban_date is not None and user_requested.ban_date > datetime.utcnow()
+        return render_template('user_details.html', user=user_requested, scan_possible=scan_possible, user_banned=user_banned)
 
     @user_blueprint.route('/user/profile')
     @login_required

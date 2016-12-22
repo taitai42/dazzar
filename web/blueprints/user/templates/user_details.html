@@ -71,6 +71,9 @@
             {% endif %}
             {% endif %}
             </p>
+            {% if user_banned %}
+            <p>Cet utilisateur est banni jusqu'au {{ user.ban_date|french_date('%d %B %Y - %H:%M:%S') }}.</p>
+            {% endif %}
         </div>
     </div>
 
@@ -105,6 +108,10 @@
                 <li>
                     <a href="{{ url_for('user_blueprint.user_scan', user_id=user.id) }}">Forcer scan</a>
                 </li>
+                <li><a href="{{ url_for('user_blueprint.user_unban', steam_id=user.id) }}">Unban user.</a></li>
+                <li><a href="{{ url_for('user_blueprint.user_ban', steam_id=user.id, time='1440') }}">Ajouter 1 jour de ban.</a></li>
+                <li><a href="{{ url_for('user_blueprint.user_ban', steam_id=user.id, time='8640') }}">Ajouter 6 jours de ban.</a></li>
+                <li><a href="{{ url_for('user_blueprint.user_ban', steam_id=user.id, time='1452174854') }}">Ajouter beaucoup de temps de ban.</a></li>
             </ul>
         </div>
     </div>

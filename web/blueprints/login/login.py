@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 from steam import WebAPI
 from flask import current_app, Blueprint, request, url_for, redirect, render_template
@@ -51,18 +52,29 @@ def make_blueprint(oid, login_manager):
         return redirect(url_for('index'))
 
     @login_blueprint.before_app_request
-    def nickname_checker():
-        """Redirects the user to the nickname setting page if not yet created.
+    def user_checker():
+        """Check user properties before any request and redirect if necessary.
+
+        Redirects the user to the ban description page if the user is banned.
+        Redirects the user to the nickname setting page if not yet created.
 
         Returns:
-            None if the user has it nicknames set, or the nickname setting page otherwise.
+            None if the user is not banned, has it nicknames set. HTTP response otherwise.
         """
-        if not current_user.is_authenticated or current_user.nickname is not None:
+        if not current_user.is_authenticated:
             return None
         if request.endpoint in ['user_blueprint.nickname',
+                                'user_blueprint.ban',
                                 'login_blueprint.logout',
                                 'static']:
             return None
+
+        if current_user.ban_date is not None and current_user.ban_date > datetime.utcnow():
+            return redirect(url_for('user_blueprint.ban'))
+
+        if current_user.nickname is not None:
+            return None
+
         return redirect(url_for('user_blueprint.nickname'))
 
     @login_blueprint.route('/login/steam')

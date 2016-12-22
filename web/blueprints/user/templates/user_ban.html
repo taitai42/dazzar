@@ -1,0 +1,8 @@
+{% extends "user_layout.html" %}
+{% block userbody %}
+
+    <h1 class="page-header">Ban</h1>
+
+    <p>Vous êtes actuellement banni du site internet avec ce compte jusqu'au {{ current_user.ban_date|french_date }}.</p>
+
+{% endblock %}

@@ -25,7 +25,6 @@ def create_app():
     db.init_app(app)
     return app
 
-
 app = create_app()
 migrate = Migrate(app, db)
 Markdown(app)

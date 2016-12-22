@@ -23,7 +23,9 @@ class User(db.Model):
         avatar: URL of the user avatar in steam, updated at each login (small).
         avatar_medium: URL of the user avatar in steam, updated at each login (medium).
         avatar_full: URL of the user avatar in steam, updated at each login (full).
+
         verified: Boolean True if the user is known in the community with this username.
+        ban_date: Date the user is ban to.
 
         current_match: match_id of the match the user is currently in.
         solo_mmr: player solo mmr updated after a scan.
@@ -42,7 +44,9 @@ class User(db.Model):
     avatar = db.Column(db.String(), nullable=True)
     avatar_medium = db.Column(db.String(), nullable=True)
     avatar_full = db.Column(db.String(), nullable=True)
+
     verified = db.Column(db.Boolean(), nullable=False, default=False, server_default='False')
+    ban_date = db.Column(db.DateTime, nullable=True, default=None)
 
     current_match = db.Column(db.Integer, db.ForeignKey('match.id'))
     solo_mmr = db.Column(db.Integer(), nullable=True)
@@ -70,6 +74,7 @@ class User(db.Model):
         self.avatar_full = None
         self.verified = False
         self.solo_mmr = None
+        self.ban_date = None
 
     @staticmethod
     def is_authenticated(self):
