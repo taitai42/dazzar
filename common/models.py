@@ -256,11 +256,15 @@ class QueuedPlayer(db.Model):
         id: Unique ID of the User queued.
         queue_name: queue label the player is queued in (cf. constants).
         added: `datetime` that refer to when the User entered
+        mode_vote: modes chosen by the player
+        selection_vote: selection chosen by the player.
     """
     __tablename__ = 'queued_player'
 
     id = db.Column(db.BigInteger(), db.ForeignKey('user.id'), primary_key=True)
     queue_name = db.Column(db.String(20), primary_key=True)
+    mode_vote = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+    selection_vote = db.Column(db.Integer, nullable=False, default=0, server_default='0')
 
     added = db.Column(db.DateTime, index=True, nullable=False)
 
@@ -274,6 +278,8 @@ class QueuedPlayer(db.Model):
         self.id = id
         self.queue_name = queue_name
         self.added = datetime.utcnow()
+        self.mode_vote = 0
+        self.selection_vote = 0
 
 
 class PlayerInMatch(db.Model):

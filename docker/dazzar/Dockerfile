@@ -25,7 +25,7 @@ RUN pip3 install \
     pytz
 RUN echo 'fr_FR.UTF-8 UTF-8' > /etc/locale.gen && locale-gen
 
-RUN pip3 install git+https://github.com/ValvePython/dota2
+RUN pip3 install git+https://github.com/Philaeux/dota2@chat
 
 ENV PYTHONPATH $PYTHONPATH:/dazzar
 COPY . /dazzar/

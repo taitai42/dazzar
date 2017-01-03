@@ -40,15 +40,19 @@ class DotaBot(Greenlet):
         self.app = self.worker_manager.app
 
         self.job_started = False
+        self.game_creation_call = False
         self.job_finished = False
 
         self.match = None
         self.players = None
 
         self.game_status = None
+        self.lobby_channel_id = None
         self.invite_timer = None
         self.missing_players = None
+        self.missing_players_count = None
         self.wrong_team_players = None
+        self.wrong_team_players_count = None
 
         # Prepare all event handlers
         # - Steam client events
@@ -63,6 +67,8 @@ class DotaBot(Greenlet):
         self.dota.on('profile_card', self.scan_profile_result)
         self.dota.on(dota2.features.Lobby.EVENT_LOBBY_NEW, self.vip_game_created)
         self.dota.on(dota2.features.Lobby.EVENT_LOBBY_CHANGED, self.game_update)
+        self.dota.on(dota2.features.Chat.EVENT_CHANNEL_JOIN, self.channel_join)
+        self.dota.on(dota2.features.Chat.EVENT_CHANNEL_MESSAGE, self.channel_message)
 
     def _run(self):
         """Start the main loop of the thread, connecting to Steam, waiting for the job to finish to close the bot."""
@@ -134,6 +140,14 @@ class DotaBot(Greenlet):
         self.print_info('Job ended.')
         self.job = None
         self.job_finished = True
+
+    def channel_join(self, channel_info):
+        if self.game_status is not None:
+            if channel_info.channel_name == 'Lobby_{0}'.format(self.game_status.lobby_id):
+                self.lobby_channel_id = channel_info.channel_id
+
+    def channel_message(self, message):
+        self.print_error(message)
 
     ############################
     # Scan profile job section #
@@ -219,6 +233,7 @@ class DotaBot(Greenlet):
 
                 # Start the Dota lobby
                 self.dota.create_practice_lobby(password=self.match.password)
+                self.game_creation_call = True
 
     def vip_game_created(self, message):
         """Callback fired when the Dota bot enters a lobby.
@@ -228,15 +243,17 @@ class DotaBot(Greenlet):
         """
         self.game_status = message
 
-        if self.job is None:
+        if self.job is None or not self.game_creation_call:
             self.dota.leave_practice_lobby()
         else:
             self.initialize_lobby()
             start = self.manage_player_waiting()
 
             if not start:
+                self.dota.send_message(self.lobby_channel_id, 'Annulation de la partie.')
                 self.process_game_dodge()
             else:
+                self.dota.send_message(self.lobby_channel_id, 'Tous les joueurs sont présents.')
                 self.start_game()
 
                 # Waiting PostGame = 3 or UI = 0 (means no loading)
@@ -248,6 +265,10 @@ class DotaBot(Greenlet):
                 elif self.game_status.state == 3:
                     self.process_endgame_results()
 
+            if self.lobby_channel_id is not None:
+                self.dota.leave_channel(self.lobby_channel_id)
+                self.lobby_channel_id = None
+
             self.dota.leave_practice_lobby()
             self.end_job_processing()
 
@@ -258,6 +279,7 @@ class DotaBot(Greenlet):
     def initialize_lobby(self):
         """Setup the game lobby with the good options, and change status in database."""
         self.print_info('Game %s created, setup.' % self.job.match_id)
+        self.dota.join_lobby_channel()
         self.dota.join_practice_lobby_team()
         options = {
             'game_name': 'Dazzar Game {0}'.format(str(self.match.id)),
@@ -296,11 +318,12 @@ class DotaBot(Greenlet):
             if len(self.missing_players) == 0 and len(self.wrong_team_players) == 0:
                 return True
             else:
-                # Say: Joueurs manquants self.missing_players
-                # Say: Joueurs dans les mauvaises équipes self.wrong_team_players
-                # Say: Temps restant avant lancement: self.invite_timer
-                #  logging.error('Missing players %s', self.missing_players)
-                # logging.error('Wrong team players %s', self.wrong_team_players)
+                if self.invite_timer.seconds != 0 and self.invite_timer.seconds % 60 in [0, 30]:
+                    minutes = self.invite_timer.seconds // 60
+                    seconds = self.invite_timer.seconds - 60*minutes
+                    self.dota.send_message(self.lobby_channel_id,
+                                           '{:01d}:{:02d} avant annulation, {} absent(s), {} mal placé(s).'.format(
+                                               minutes, seconds, self.missing_players_count, self.wrong_team_players_count))
                 self.invite_timer = self.invite_timer - timedelta(seconds=refresh_rate)
         return False
 
@@ -312,15 +335,19 @@ class DotaBot(Greenlet):
         Kick from slots all players not in the good slot.
         """
         self.missing_players = []
+        self.missing_players_count = 0
         self.wrong_team_players = []
+        self.wrong_team_players_count = 0
 
         for player_id, player in self.players.items():
+            self.missing_players_count +=1
             self.missing_players.append(player_id)
 
         for message_player in self.game_status.members:
             if message_player.id == self.dota.steam_id:
                 continue
             if message_player.id in self.missing_players:
+                self.missing_players_count -= 1
                 self.missing_players.remove(message_player.id)
                 good_slot = message_player.slot == self.players[message_player.id].team_slot
                 good_team = (message_player.team == DOTA_GC_TEAM.GOOD_GUYS and
@@ -329,6 +356,7 @@ class DotaBot(Greenlet):
                              not self.players[message_player.id].is_radiant)
                 if not (good_team and good_slot):
                     self.wrong_team_players.append(message_player.id)
+                    self.wrong_team_players_count += 1
                     if message_player.team != DOTA_GC_TEAM.PLAYER_POOL:
                         self.dota.practice_lobby_kick_from_team(SteamID(message_player.id).as_32)
             else:
