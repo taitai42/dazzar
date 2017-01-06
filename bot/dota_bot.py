@@ -142,9 +142,12 @@ class DotaBot(Greenlet):
         self.job_finished = True
 
     def channel_join(self, channel_info):
-        if self.game_status is not None:
-            if channel_info.channel_name == 'Lobby_{0}'.format(self.game_status.lobby_id):
-                self.lobby_channel_id = channel_info.channel_id
+        if channel_info.channel_type != dota2.enums.DOTAChatChannelType_t.DOTAChannelType_Lobby:
+            self.dota.leave_channel(channel_info.channel_id)
+        else:
+            if self.game_status is not None:
+                if channel_info.channel_name == 'Lobby_{0}'.format(self.game_status.lobby_id):
+                    self.lobby_channel_id = channel_info.channel_id
 
     def channel_message(self, message):
         self.print_error(message)
