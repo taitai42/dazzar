@@ -74,6 +74,10 @@ bot-stop:
 bot-run:
 	docker-compose -p dazzar -f docker/docker-compose.yml up --build dazzar_bot
 
+# start wiki
+wiki-start:
+	docker-compose -p dazzar -f docker/docker-compose.yml up dazzar_wiki
+
 # scripts
 SCRIPT?=make_admin -i 76561197961298382
 script: build

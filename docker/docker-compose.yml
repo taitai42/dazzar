@@ -63,3 +63,14 @@ services:
     depends_on:
       - dazzar_postgres
       - dazzar_rabbitmq
+
+  dazzar_wiki:
+    image: dazzar_wiki
+    container_name: "dazzar_wiki"
+    build:
+      context: ..
+      dockerfile: docker/dazzar_wiki/Dockerfile
+    ports:
+      - "9005:8080"
+    entrypoint: uwsgi --http :8080 --wsgi-file /usr/local/share/moin/moin.wsgi
+    network_mode: "bridge"
