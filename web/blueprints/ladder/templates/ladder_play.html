@@ -1,52 +1,53 @@
 {% extends "ladder_layout.html" %}
 
-{% block header %}
-<meta http-equiv="Refresh" content="30">
-{% endblock %}
-
 {% block ladderbody %}
 
-    {% if is_open %}
-        {% if current_user.has_permission('admin') %}
-        <p><a href="{{ url_for('ladder_blueprint.ladder_open') }}">Fermer le ladder.</a></p>
-        {% endif %}
-        <p>Le ladder est ouvert.</p>
+    <div ng-controller="QueueController">
 
-        <p>
-        {% if current_user.section is none %}
-        Vous ne pouvez pas rejoindre la queue car vous n'avez pas encore scan votre MMR. Rendez vous sur votre <a
-                href="{{ url_for('user_blueprint.user_profile') }}">Profil</a> pour effectuer cette opération.
-        {% else %}
-            {% if current_user.section == 'high' %}
-            Vous êtes dans le ladder > 5K MMR.
-            {% elif current_user.section == 'medium' %}
-            Vous êtes dans le ladder compris entre 3K et 5K MMR.
-            {% elif current_user.section == 'low' %}
-            Vous êtes dans le ladder < 3K MMR.
+        <div ng-if="queue_details.is_open">
+            {% if current_user.has_permission('admin') %}
+            <button type="button" class="btn btn-primary" ng-click="open_close_ladder('0')">Fermer le Ladder</button>
             {% endif %}
+            <p>Le ladder est ouvert.</p>
 
-            <br />
-            {% if in_queue %}
-            <a href="{{ url_for('ladder_blueprint.queue') }}">Sortir de la queue</a>
+            <p>
+            {% if current_user.section is none %}
+            Vous ne pouvez pas rejoindre la queue car vous n'avez pas encore scan votre MMR. Rendez vous sur votre <a
+                    href="{{ url_for('user_blueprint.user_profile') }}">Profil</a> pour effectuer cette opération.
             {% else %}
-            <a href="{{ url_for('ladder_blueprint.queue') }}">Rentrez dans la queue</a>
+                {% if current_user.section == 'high' %}
+                Vous êtes dans le ladder > 5K MMR.
+                {% elif current_user.section == 'medium' %}
+                Vous êtes dans le ladder compris entre 3K et 5K MMR.
+                {% elif current_user.section == 'low' %}
+                Vous êtes dans le ladder < 3K MMR.
+                {% endif %}
+
+                <br />
+                <label>AP <input type="checkbox" ng-model="modes.ap" ng-disabled="queue_details.user.in_queue"></label>
+                <label>RD <input type="checkbox" ng-model="modes.rd" ng-disabled="queue_details.user.in_queue"></label>
+                <label>CD <input type="checkbox" ng-model="modes.cd" ng-disabled="queue_details.user.in_queue"></label><br/>
+                <button type="button" class="btn btn-primary" ng-click="in_out_queue('1')" ng-if="!queue_details.user.in_queue">Rentrer dans la queue</button>
+                <button type="button" class="btn btn-primary" ng-click="in_out_queue('0')" ng-if="queue_details.user.in_queue">Sortir de la queue</button>
             {% endif %}
-        {% endif %}
-        </p>
+            </p>
 
-        <p>État des queues:</p>
-        <ul>
-            <li>Haut MMR: {{ current_queues['high'] }} / 10.</li>
-            <li>MMR Moyen: {{ current_queues['medium'] }} / 10.</li>
-            <li>Bas MMR: {{ current_queues['low'] }} / 10.</li>
-        </ul>
+            <p>État des queues:</p>
+            <ul>
+                <li>Haut MMR: {a queue_details.queues.high a} / 10.</li>
+                <li>MMR Moyen: {a queue_details.queues.medium a} / 10.</li>
+                <li>Bas MMR: {a queue_details.queues.low a} / 10.</li>
+            </ul>
 
-    {% else %}
-        {% if current_user.has_permission('admin') %}
-        <p><a href="{{ url_for('ladder_blueprint.ladder_open') }}">Ouvrir le ladder.</a></p>
-        {% endif %}
-        <p>Le ladder n'est pas ouvert pour le moment.</p>
-    {% endif %}
+        </div>
 
+        <div ng-if="!queue_details.is_open">
+            {% if current_user.has_permission('admin') %}
+            <button type="button" class="btn btn-primary" ng-click="open_close_ladder('1')">Ouvrir le Ladder</button>
+            {% endif %}
+            <p>Le ladder n'est pas ouvert pour le moment.</p>
+        </div>
+
+    </div>
 
 {% endblock %}

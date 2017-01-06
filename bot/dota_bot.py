@@ -150,7 +150,7 @@ class DotaBot(Greenlet):
                     self.lobby_channel_id = channel_info.channel_id
 
     def channel_message(self, message):
-        self.print_error(message)
+        pass
 
     ############################
     # Scan profile job section #
@@ -284,10 +284,16 @@ class DotaBot(Greenlet):
         self.print_info('Game %s created, setup.' % self.job.match_id)
         self.dota.join_lobby_channel()
         self.dota.join_practice_lobby_team()
+        game_mode_encoding = {
+            'ap': dota2.enums.DOTA_GameMode.DOTA_GAMEMODE_ALL_DRAFT,
+            'rd': dota2.enums.DOTA_GameMode.DOTA_GAMEMODE_RD,
+            'cd': dota2.enums.DOTA_GameMode.DOTA_GAMEMODE_CD
+        }
+
         options = {
             'game_name': 'Dazzar Game {0}'.format(str(self.match.id)),
             'pass_key': self.match.password,
-            'game_mode': dota2.enums.DOTA_GameMode.DOTA_GAMEMODE_RD,
+            'game_mode': game_mode_encoding[self.match.mode],
             'server_region': int(dota2.enums.EServerRegion.Europe),
             'fill_with_bots': False,
             'allow_spectating': True,

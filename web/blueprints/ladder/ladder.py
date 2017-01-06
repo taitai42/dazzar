@@ -1,6 +1,7 @@
 import pickle
+import logging
 
-from flask import Blueprint, current_app, request, url_for, redirect, render_template, jsonify
+from flask import Blueprint, current_app, request, url_for, redirect, render_template, jsonify, json
 from flask_login import current_user, login_required
 
 from common.helpers import _jinja2_filter_french_date
@@ -33,35 +34,7 @@ def make_blueprint(job_queue):
         if current_user.current_match is not None:
             return redirect(url_for('ladder_blueprint.match', match_id=current_user.current_match))
 
-        in_queue = False
-        current_queues = {constants.LADDER_HIGH: 0, constants.LADDER_LOW: 0, constants.LADDER_MEDIUM: 0}
-        is_open = current_app.config['VIP_LADDER_OPEN']
-
-        if is_open:
-            if QueuedPlayer.query.filter_by(id=current_user.id).first() is not None:
-                in_queue = True
-
-            for key, value in current_queues.items():
-                current_queues[key] = QueuedPlayer.query.filter(QueuedPlayer.queue_name == key).limit(10).count()
-
-        return render_template('ladder_play.html', is_open=is_open, current_queues=current_queues, in_queue=in_queue)
-
-    @ladder_blueprint.route('/ladder/open')
-    @login_required
-    def ladder_open():
-        """Open or close the ladders
-
-        Returns:
-            Redirect to the page of the queue status.
-        """
-        if current_user.has_permission('admin'):
-            for user in QueuedPlayer.query \
-                    .all():
-                db.session.delete(user)
-            db.session.commit()
-            current_app.config['VIP_LADDER_OPEN'] = not current_app.config['VIP_LADDER_OPEN']
-
-        return redirect(url_for('ladder_blueprint.ladder_play'))
+        return render_template('ladder_play.html')
 
     @ladder_blueprint.route('/ladder/scoreboard/<string:ladder>')
     def ladder_scoreboard(ladder):
@@ -184,45 +157,6 @@ def make_blueprint(job_queue):
         match = db.session().query(Match).filter(Match.id == match_id).first()
         return render_template('ladder_match.html', match=match)
 
-    @ladder_blueprint.route('/queue')
-    @login_required
-    def queue():
-        """Queue or dequeue the current user from it ladder queue.
-
-        Returns:
-            Redirection to the queue status.
-        """
-        if current_user.current_match is None and current_user.section is not None:
-            remove_queue = QueuedPlayer.query.filter_by(id=current_user.id).first()
-            if remove_queue is not None:
-                db.session().delete(remove_queue)
-                db.session().commit()
-            else:
-                new_queue = QueuedPlayer(current_user.id, current_user.section)
-                db.session().add(new_queue)
-                db.session().commit()
-
-                query = QueuedPlayer.query.filter_by(queue_name=current_user.section) \
-                    .order_by(QueuedPlayer.added).limit(10)
-                if query.count() >= 10:
-                    # Create a game
-                    players = []
-                    for player in query.all():
-                        players.append(player.id)
-                        db.session().delete(player)
-                    new_match = Match(players, current_user.section)
-                    db.session().add(new_match)
-                    db.session().commit()
-                    for player in new_match.players:
-                        player.player.current_match = new_match.id
-                    db.session.commit()
-
-                    job_queue.produce(JobCreateGame(match_id=new_match.id))
-
-                    return redirect(url_for('ladder_blueprint.ladder_play'))
-
-        return redirect(url_for('ladder_blueprint.ladder_play'))
-
     @ladder_blueprint.route('/ladder/match/cancel/<int:match_id>')
     @login_required
     def cancel_match(match_id):
@@ -262,5 +196,85 @@ def make_blueprint(job_queue):
                 db.session.commit()
 
         return redirect(url_for('ladder_blueprint.match', match_id=match_id))
+
+    @ladder_blueprint.route('/api/ladder/queue/details', methods=['GET'])
+    def queue_details():
+        payload = {'is_open': current_app.config['VIP_LADDER_OPEN'],
+                   'user': {
+                       'in_queue': False,
+                       'game': None,
+                   },
+                   'queues': {
+                       constants.LADDER_HIGH: 0,
+                       constants.LADDER_LOW: 0,
+                       constants.LADDER_MEDIUM: 0}
+                   }
+        if current_user.is_authenticated and current_user.current_match is not None:
+            payload['user']['game'] = current_user.current_match
+
+        if payload['is_open']:
+            if current_user.is_authenticated and QueuedPlayer.query.filter_by(id=current_user.id).first() is not None:
+                payload['user']['in_queue'] = True
+
+            for key, value in payload['queues'].items():
+                payload['queues'][key] = QueuedPlayer.query.filter(QueuedPlayer.queue_name == key).limit(10).count()
+
+        return jsonify(payload), 200
+
+    @ladder_blueprint.route('/api/ladder/queue/change', methods=['GET'])
+    @login_required
+    def queue_open_close():
+        open_or_close = request.args.get('open', '0') == '1'
+
+        if current_user.has_permission('admin'):
+            for user in QueuedPlayer.query.all():
+                db.session.delete(user)
+            db.session.commit()
+            current_app.config['VIP_LADDER_OPEN'] = open_or_close
+
+            return queue_details()
+        else:
+            return jsonify({
+                'message': 'Forbidden action for this user.'
+            }), 403
+
+    @ladder_blueprint.route('/api/ladder/queue/in_out', methods=['POST'])
+    @login_required
+    def queue_in_out():
+        data = request.get_json(silent=False, force=True)
+        in_out = data['in'] == '1'
+        modes = data['modes']
+
+        if current_user.current_match is None and current_user.section is not None:
+            remove_queue = QueuedPlayer.query.filter_by(id=current_user.id).first()
+
+            if not in_out and remove_queue is not None:
+                db.session().delete(remove_queue)
+                db.session().commit()
+            elif in_out and remove_queue is None:
+                new_queue = QueuedPlayer(current_user.id, current_user.section, modes)
+                db.session().add(new_queue)
+                db.session().commit()
+
+                query = QueuedPlayer.query.filter_by(queue_name=current_user.section) \
+                    .order_by(QueuedPlayer.added).limit(10)
+                if query.count() >= 10:
+                    # Create a game
+                    players = []
+                    votes = []
+                    for player in query.all():
+                        players.append(player.id)
+                        votes.append(player.mode_vote)
+                        db.session().delete(player)
+                    new_match = Match(players, current_user.section, votes)
+                    db.session().add(new_match)
+                    db.session().commit()
+                    for player in new_match.players:
+                        player.player.current_match = new_match.id
+                    db.session.commit()
+
+                    job_queue.produce(JobCreateGame(match_id=new_match.id))
+
+        return queue_details()
 
     return ladder_blueprint

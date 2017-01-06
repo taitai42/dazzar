@@ -15,6 +15,7 @@
             <span class="blueText">Bas</span>.
         {% endif %}
         </li>
+        <li>Mode de jeu: {{ match.mode.upper() }}</li>
         <li>État du match -
             {% if match.status == 0 %}Le bot est en train de s'initialiser pour créer la partie.
             {% elif match.status == 1 %}La game est crée, le bot invite les joueurs avant de lancer.

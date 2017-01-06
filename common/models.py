@@ -268,7 +268,7 @@ class QueuedPlayer(db.Model):
 
     added = db.Column(db.DateTime, index=True, nullable=False)
 
-    def __init__(self, id, queue_name):
+    def __init__(self, id, queue_name, modes):
         """Create a new User in Queue.
 
         Args:
@@ -278,9 +278,21 @@ class QueuedPlayer(db.Model):
         self.id = id
         self.queue_name = queue_name
         self.added = datetime.utcnow()
-        self.mode_vote = 0
+        self.mode_vote = QueuedPlayer.mode_vote_dic_to_integer(modes)
         self.selection_vote = 0
 
+    @staticmethod
+    def mode_vote_dic_to_integer(modes):
+        encoding = {
+            'ap': 1,
+            'rd': 2,
+            'cd': 4,
+        }
+        total = 0
+        for key, value in modes.items():
+            if value and key in encoding:
+                total += encoding[key]
+        return total
 
 class PlayerInMatch(db.Model):
     """Association of users inside matches, with additional information.
@@ -353,10 +365,11 @@ class Match(db.Model):
     server = db.Column(db.String, nullable=True)
     section = db.Column(db.String, nullable=False, default=constants.LADDER_HIGH, server_default=constants.LADDER_HIGH)
     radiant_win = db.Column(db.Boolean, nullable=True, default=None)
+    mode = db.Column(db.String, nullable=False, default='', server_default='')
 
     players = db.relationship('PlayerInMatch', back_populates='match')
 
-    def __init__(self, players, section):
+    def __init__(self, players, section, votes):
         """Create a new match object.
 
         Args:
@@ -383,6 +396,23 @@ class Match(db.Model):
             count[is_radiant] += 1
             player_in_match = PlayerInMatch(player, self, is_radiant, count[is_radiant])
             self.players.append(player_in_match)
+
+        # Computation of mode starting with votes
+        modes = []
+        encoding = {'ap': 1, 'rd': 2, 'cd': 4}
+        count = {'ap': 0, 'cd': 0, 'rd': 0}
+        for vote in votes:
+            for mode, value in encoding.items():
+                if vote & value:
+                    count[mode] += 1
+        max = -1
+        for mode, value in count.items():
+            if value > max:
+                max = value
+                modes = [mode]
+            elif value == max:
+                modes.append(mode)
+        self.mode = random.choice(modes)
 
 
 class Scoreboard(db.Model):
