@@ -21,39 +21,44 @@ def make_blueprint(job_queue):
     """
     user_blueprint = Blueprint('user_blueprint', __name__, template_folder='templates')
 
-    @user_blueprint.route('/nickname', methods=['GET', 'POST'])
+    @user_blueprint.route('/nickname', methods=['GET'])
     @login_required
     def nickname():
-        """User nickname creation access point.
+        """User nickname page.
 
-        Methods:
-            GET: give the page to setup the user nickname.
-                Returns:
-                    The page to modify the nickname.
-            POST: setup the nickname if the input is valid.
-                Parameters:
-                    nickname: the nickname to use for the current user.
-                Returns:
-                    Redirects to the page to setup the nickname if there is an error or to index otherwise.
+        Returns:
+            The page to modify the nickname.
         """
         if current_user.nickname is not None:
             return redirect(url_for('index'))
 
-        if request.method == 'GET':
-            return render_template('user_nickname.html')
-        elif request.method == 'POST':
-            posted_nickname = request.form.get('nickname')
+        return render_template('user_nickname.html')
 
-            error = validate_nickname(posted_nickname)
-            if error is not None:
-                return render_template('user_nickname.html', error=error)
+    @user_blueprint.route('/api/nickname/select', methods=['POST'])
+    @login_required
+    def select_nickname():
+        if current_user.nickname is not None:
+            return jsonify({
+                'status': 'ko',
+                'message': "L'utilisateur a déjà un nickname."}), 200
 
-            if db.session().query(User).filter_by(nickname=posted_nickname).first() is not None:
-                return render_template('user_nickname.html', error='Le pseudo est déjà utilisé.')
-            current_user.nickname = posted_nickname
-            db.session().commit()
-            return redirect(url_for('index'))
-        abort(404)
+        data = request.get_json(silent=False, force=True)
+        posted_nickname = data['nickname']
+
+        error = validate_nickname(posted_nickname)
+        if error is not None:
+            return jsonify({
+                'status': 'ko',
+                'message': error}), 200
+
+        if db.session().query(User).filter_by(nickname=posted_nickname).first() is not None:
+            return jsonify({
+                'status': 'ko',
+                'message': 'Le pseudo est déjà utilisé.'}), 200
+        current_user.nickname = posted_nickname
+        db.session().commit()
+
+        return jsonify({'status': 'ok'}), 200
 
     @user_blueprint.route('/ban', methods=['GET'])
     @login_required

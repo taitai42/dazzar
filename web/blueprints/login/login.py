@@ -64,6 +64,7 @@ def make_blueprint(oid, login_manager):
         if not current_user.is_authenticated:
             return None
         if request.endpoint in ['user_blueprint.nickname',
+                                'user_blueprint.select_nickname',
                                 'user_blueprint.ban',
                                 'login_blueprint.logout',
                                 'static']:

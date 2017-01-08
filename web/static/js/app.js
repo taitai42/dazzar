@@ -5,6 +5,30 @@ dazzarApp.config(function($interpolateProvider) {
     $interpolateProvider.endSymbol('a}');
 });
 
+dazzarApp.controller('NicknameController', ['$scope', '$http', '$window', function ($scope, $http, $window) {
+    $scope.nickname = '';
+    $scope.message = '';
+
+    $scope.validate_nickname = function() {
+        $http({
+            method: 'POST',
+            url: '/api/nickname/select',
+            data: {
+                'nickname': $scope.nickname
+            }
+        }).then(function successCallback(response) {
+            console.log(response.data);
+            if (response.data['status'] == 'ok') {
+                $window.location.href = '/';
+            } else {
+                $scope.message = response.data['message']
+            }
+        }, function errorCallback(response) {
+            console.log(response)
+        });
+    }
+}]);
+
 dazzarApp.controller('QueueController', ['$scope', '$http', '$interval', '$window', function ($scope, $http, $interval, $window) {
     $scope.queue_details = {
         is_open: false,
