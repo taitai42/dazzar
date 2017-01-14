@@ -24,9 +24,9 @@
                 {% endif %}
 
                 <br />
-                <label>AP <input type="checkbox" ng-model="modes.ap" ng-disabled="queue_details.user.in_queue"></label>
-                <label>RD <input type="checkbox" ng-model="modes.rd" ng-disabled="queue_details.user.in_queue"></label>
-                <label>CD <input type="checkbox" ng-model="modes.cd" ng-disabled="queue_details.user.in_queue"></label><br/>
+                <label title="All Pick">AP <input type="checkbox" ng-model="modes.ap" ng-disabled="queue_details.user.in_queue"></label>
+                <label title="Random Draft">RD <input type="checkbox" ng-model="modes.rd" ng-disabled="queue_details.user.in_queue"></label>
+                <label title="Captain Draft">CD <input type="checkbox" ng-model="modes.cd" ng-disabled="queue_details.user.in_queue"></label><br/>
                 <button type="button" class="btn btn-primary" ng-click="in_out_queue('1')" ng-if="!queue_details.user.in_queue">Rentrer dans la queue</button>
                 <button type="button" class="btn btn-primary" ng-click="in_out_queue('0')" ng-if="queue_details.user.in_queue">Sortir de la queue</button>
             {% endif %}
