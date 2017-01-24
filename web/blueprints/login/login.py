@@ -114,7 +114,7 @@ def make_blueprint(oid, login_manager):
         user.avatar_full = resp['response']['players'][0]['avatarfull']
         db.session.commit()
 
-        login_user(user)
+        login_user(user, remember=True)
         return redirect(url_for('index'))
 
     return login_blueprint
