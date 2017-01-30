@@ -192,20 +192,18 @@ class DotaBot(Greenlet):
             user.profile_scan_info.last_scan = datetime.utcnow()
             if solo_mmr is not None:
                 user.solo_mmr = solo_mmr
-                if user.solo_mmr > 5000:
+
+            if user.solo_mmr is not None:
+                if user.solo_mmr > 4500:
                     user.section = constants.LADDER_HIGH
-                elif user.solo_mmr < 3000:
-                    if user.section is None:
-                        user.section = constants.LADDER_LOW
                 else:
-                    if user.section != constants.LADDER_HIGH:
-                        user.section = constants.LADDER_MEDIUM
+                    user.section = constants.LADDER_LOW
 
                 scoreboard = Scoreboard.query.filter_by(user_id=user.id, ladder_name=user.section).first()
                 if scoreboard is None:
                     scoreboard = Scoreboard(user, user.section)
                     db.session.add(scoreboard)
-            db.session.commit()
+                db.session.commit()
         self.job.scan_finish = True
 
     ########################

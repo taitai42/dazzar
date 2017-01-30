@@ -8,13 +8,6 @@
     {% endif %}
     Haut MMR</a>
 
-    {% if ladder=='medium' %}
-        <a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='medium')}}" type="button" class="btn btn-primary">
-    {% else %}
-        <a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='medium')}}" type="button" class="btn btn-default">
-    {% endif %}
-    MMR Moyen</a>
-
     {% if ladder=='low' %}
         <a href="{{ url_for('ladder_blueprint.ladder_scoreboard', ladder='low')}}" type="button" class="btn btn-primary">
     {% else %}
