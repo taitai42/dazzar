@@ -4,7 +4,7 @@ from flask_script import Manager
 
 from web.web_application import app, db
 from common.job_queue import QueueAdapter, JobScan
-from common.models import User, Scoreboard, Match, ProfileScanInfo
+from common.models import User, Scoreboard, Match, ProfileScanInfo, QueuedPlayer, PlayerInMatch
 import common.constants as constants
 
 manager = Manager(app)
@@ -92,6 +92,17 @@ def scan_all_users():
         job_queue.produce(JobScan(steam_id=user.id))
 
     db.session.commit()
+
+
+@manager.command
+def reset_all_matches():
+    """Delete all matches and linked info, recompute scoreboards."""
+    Match.query.delete()
+    QueuedPlayer.query.delete()
+    PlayerInMatch.query.delete()
+
+    db.session.commit()
+
 
 #######################
 # Setup Manage Script #

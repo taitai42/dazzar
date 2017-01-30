@@ -294,6 +294,7 @@ class QueuedPlayer(db.Model):
                 total += encoding[key]
         return total
 
+
 class PlayerInMatch(db.Model):
     """Association of users inside matches, with additional information.
 
