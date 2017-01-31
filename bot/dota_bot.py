@@ -65,6 +65,7 @@ class DotaBot(Greenlet):
         self.dota.on('notready', self.closed_dota)
 
         self.dota.on('profile_card', self.scan_profile_result)
+        self.dota.on('player_info', self.scan_player_info)
         self.dota.on(dota2.features.Lobby.EVENT_LOBBY_NEW, self.vip_game_created)
         self.dota.on(dota2.features.Lobby.EVENT_LOBBY_CHANGED, self.game_update)
         self.dota.on(dota2.features.Chat.EVENT_CHANNEL_JOIN, self.channel_join)
@@ -168,6 +169,10 @@ class DotaBot(Greenlet):
 
         if self.job.scan_finish:
             self.end_job_processing()
+
+    def scan_player_info(self, message):
+        self.print_info(message)
+        self.job.scan_finish = True
 
     def scan_profile_result(self, account_id, profile_card):
         """Process the profile information returned by Steam.
@@ -456,6 +461,7 @@ class DotaBot(Greenlet):
                     score.loss += 1
             for player in self.game_status.left_members:
                 score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player.id).first()
+                self.players[player.id].is_leaver = True
                 score.points -= 3
                 score.leave += 1
 
