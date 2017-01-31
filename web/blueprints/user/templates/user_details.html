@@ -40,11 +40,9 @@
                 {% if user.section is none %}
                     Membre d'aucun ladder.
                 {% elif user.section == 'high'%}
-                    Membre du ladder > 5K.
-                {% elif user.section == 'medium' %}
-                    Membre du ladder intermédiaire de 3K à 5K.
+                    Membre du ladder > 4K5.
                 {% elif user.section == 'low' %}
-                    Membre du ladder < 3K.
+                    Membre du ladder < 4K5.
                 {% endif %}
             </p>
         </div>
@@ -95,15 +93,6 @@
                     {% else %}
                     <a href="{{ url_for('user_blueprint.user_permission', steam_id=user.id, permission='admin', give=True) }}">Donner droits d'administration</a>
                     {% endif %}
-                </li>
-                <li>
-                    <a href="{{ url_for('user_blueprint.user_section', steam_id=user.id, ladder='high') }}">Forcer ladder high</a>
-                </li>
-                <li>
-                    <a href="{{ url_for('user_blueprint.user_section', steam_id=user.id, ladder='medium') }}">Forcer ladder medium</a>
-                </li>
-                <li>
-                    <a href="{{ url_for('user_blueprint.user_section', steam_id=user.id, ladder='low') }}">Forcer ladder low</a>
                 </li>
                 <li>
                     <a href="{{ url_for('user_blueprint.user_scan', user_id=user.id) }}">Forcer scan</a>

@@ -193,17 +193,15 @@ class DotaBot(Greenlet):
             if solo_mmr is not None:
                 user.solo_mmr = solo_mmr
 
-            if user.solo_mmr is not None:
+            if user.solo_mmr is None:
+                user.section = None
+            else:
                 if user.solo_mmr > 4500:
                     user.section = constants.LADDER_HIGH
                 else:
                     user.section = constants.LADDER_LOW
 
-                scoreboard = Scoreboard.query.filter_by(user_id=user.id, ladder_name=user.section).first()
-                if scoreboard is None:
-                    scoreboard = Scoreboard(user, user.section)
-                    db.session.add(scoreboard)
-                db.session.commit()
+            db.session.commit()
         self.job.scan_finish = True
 
     ########################
@@ -388,13 +386,13 @@ class DotaBot(Greenlet):
 
                 # Update Scoreboard
                 if player.player_id in self.missing_players or player.player_id in self.wrong_team_players:
-                    player.mmr_after = max(player.mmr_before - 150, 0)
-                    player.is_dodge = True
                     score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player.player_id).first()
-                    score.mmr = player.mmr_after
+                    if score is None:
+                        score = Scoreboard(user=player.player, ladder_name=match.section)
+                        db.session.add(score)
+                    player.is_dodge = True
+                    score.points -= 2
                     score.dodge += 1
-                else:
-                    player.mmr_after = player.mmr_before
             db.session.commit()
 
     def start_game(self):
@@ -435,10 +433,15 @@ class DotaBot(Greenlet):
                     all():
                 if player.player.current_match == self.job.match_id:
                     player.player.current_match = None
-                player.mmr_after = player.mmr_before
                 self.players[player.player_id] = player
 
             # Process scoreboard updates
+            for player_id, player in self.players.items():
+                score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player_id).first()
+                if score is None:
+                    score = Scoreboard(user=player.player, ladder_name=match.section)
+                    db.session.add(score)
+                score.matches += 1
             for player in self.game_status.members:
                 if player.id == self.dota.steam_id:
                     continue
@@ -446,19 +449,14 @@ class DotaBot(Greenlet):
                 score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=id).first()
                 if (self.players[id].is_radiant and self.game_status.match_outcome == 2) or \
                         (not self.players[id].is_radiant and self.game_status.match_outcome == 3):
-                    self.players[id].mmr_after = self.players[id].mmr_before + 50
+                    score.points += 1
                     score.win += 1
                 elif (self.players[id].is_radiant and self.game_status.match_outcome == 3) or \
                         (not self.players[id].is_radiant and self.game_status.match_outcome == 2):
-                    self.players[id].mmr_after = max(self.players[id].mmr_before - 50, 0)
                     score.loss += 1
             for player in self.game_status.left_members:
                 score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player.id).first()
-                self.players[player.id].mmr_after = max(self.players[player.id].mmr_before - 300, 0)
-                self.players[player.id].is_leaver = True
+                score.points -= 3
                 score.leave += 1
-            for player_id, player in self.players.items():
-                score = Scoreboard.query.filter_by(ladder_name=match.section, user_id=player_id).first()
-                score.mmr = player.mmr_after
-                score.matches += 1
+
             db.session.commit()

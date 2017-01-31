@@ -38,14 +38,11 @@ def recompute_scoreboards():
     Scoreboard.query.delete()
     db.session.commit()
 
-    # Recreate user current scoreboard
-    for user in User.query.filter(User.section != None).all():
-        scoreboard = Scoreboard(user=user, ladder_name=user.section)
-        db.session.add(scoreboard)
-
     # Replay all games
     for match in Match.query.order_by(Match.created).all():
         for player in match.players:
+            if not player.is_dodge and not player.is_leaver and match.radiant_win is None:
+                continue
 
             scoreboard = player.player.scoreboards.filter_by(ladder_name=match.section).first()
             if scoreboard is None:
@@ -53,14 +50,10 @@ def recompute_scoreboards():
                 db.session.add(scoreboard)
 
             if player.is_dodge:
-                player.mmr_before = scoreboard.mmr
-                player.mmr_after = max(player.mmr_before - 150, 0)
-                scoreboard.mmr = player.mmr_after
+                scoreboard.points -= 2
                 scoreboard.dodge += 1
             elif player.is_leaver:
-                player.mmr_before = scoreboard.mmr
-                player.mmr_after = max(player.mmr_before - 300, 0)
-                scoreboard.mmr = player.mmr_after
+                scoreboard.points -= 3
                 scoreboard.leave += 1
                 if match.radiant_win is not None:
                     scoreboard.matches += 1
@@ -68,14 +61,9 @@ def recompute_scoreboards():
                 if match.radiant_win is not None:
                     scoreboard.matches += 1
                     if (match.radiant_win and player.is_radiant) or (not match.radiant_win and not player.is_radiant):
-                        player.mmr_before = scoreboard.mmr
-                        player.mmr_after = player.mmr_before + 50
-                        scoreboard.mmr = player.mmr_after
+                        scoreboard.points += 1
                         scoreboard.win += 1
                     else:
-                        player.mmr_before = scoreboard.mmr
-                        player.mmr_after = max(player.mmr_before - 50, 0)
-                        scoreboard.mmr = player.mmr_after
                         scoreboard.loss += 1
     db.session.commit()
 
@@ -90,16 +78,6 @@ def scan_all_users():
 
         user.profile_scan_info.last_scan_request = datetime.utcnow()
         job_queue.produce(JobScan(steam_id=user.id))
-
-    db.session.commit()
-
-
-@manager.command
-def reset_all_matches():
-    """Delete all matches and linked info, recompute scoreboards."""
-    Match.query.delete()
-    QueuedPlayer.query.delete()
-    PlayerInMatch.query.delete()
 
     db.session.commit()
 

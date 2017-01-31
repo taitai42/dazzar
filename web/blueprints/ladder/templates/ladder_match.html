@@ -52,8 +52,7 @@
                 <th class="dt-head-center">Pseudo</th>
                 <th class="dt-head-center">Team</th>
                 <th class="dt-head-center">Slot</th>
-                <th class="dt-head-center">vMMR</th>
-                <th class="dt-head-center">vMMR+</th>
+                <th class="dt-head-center">MMR</th>
             </tr>
         </thead>
         <tbody>
@@ -68,22 +67,7 @@
                     {% endif %}
                 </td>
                 <td class="dt-body-center">{{ player.team_slot }}</td>
-                <td class="dt-body-center">{{ player.mmr_before }}</td>
-                <td class="dt-body-center">
-                    {% if player.mmr_after is not none %}
-                        {% if player.mmr_after > player.mmr_before %}
-                            <span class="greenText">
-                        {% elif player.mmr_after < player.mmr_before %}
-                            <span class="redText">
-                        {% else %}
-                            <span>
-                        {% endif %}
-                        {{ player.mmr_after }}
-                        {% if player.mmr_after != player.mmr_before %}
-                            ({{ player.mmr_after - player.mmr_before }})
-                        {% endif %}
-                        </span>
-                    {% endif %}
+                <td class="dt-body-center">{{ player.mmr }}
                     {% if player.is_leaver %}
                     <span data-toggle="tooltip" data-placement="bottom" title="Leave"
                           class="logout glyphicon glyphicon-fire" aria-hidden="true"></span>

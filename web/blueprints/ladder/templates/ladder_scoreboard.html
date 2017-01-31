@@ -20,7 +20,7 @@
         <thead>
             <tr>
                 <th></th>
-                <th class="dt-head-center">vMMR</th>
+                <th class="dt-head-center">Points</th>
                 <th class="dt-head-center">MMR</th>
                 <th></th>
                 <th class="dt-head-center">Pseudonyme</th>
@@ -127,7 +127,11 @@
                 },
                 { className: "dt-body-center", "width": "50px", "targets": 10,
                     "render": function ( data, type, full, meta ) {
-                                  return Math.round(full[7]/full[6]*100) + '%';
+                                  if (full[6] == 0) {
+                                     return '0 %';
+                                  } else {
+                                     return Math.round(full[7]/full[6]*100) + ' %';
+                                  }
                                }
                 }
             ]

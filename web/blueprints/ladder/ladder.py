@@ -73,9 +73,8 @@ def make_blueprint(job_queue):
         query = db.session().query(User, Scoreboard) \
             .filter(User.id == Scoreboard.user_id) \
             .filter(Scoreboard.ladder_name == ladder) \
-            .filter(Scoreboard.matches != 0) \
             .filter(User.nickname.isnot(None)) \
-            .order_by(Scoreboard.mmr.desc(), User.solo_mmr.desc())
+            .order_by(Scoreboard.points.desc(), User.solo_mmr.desc())
 
         count = query.count()
 
@@ -86,7 +85,7 @@ def make_blueprint(job_queue):
         place = start
         for user, scoreboard in query.all():
             place += 1
-            data.append([user.avatar, place, user.nickname, str(user.id), scoreboard.mmr, user.solo_mmr,
+            data.append([user.avatar, place, user.nickname, str(user.id), scoreboard.points, user.solo_mmr,
                          scoreboard.matches, scoreboard.win, scoreboard.loss, scoreboard.dodge, scoreboard.leave])
         results = {
             "draw": draw,

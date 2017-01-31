@@ -16,11 +16,9 @@
                     href="{{ url_for('user_blueprint.user_profile') }}">Profil</a> pour effectuer cette opération.
             {% else %}
                 {% if current_user.section == 'high' %}
-                Vous êtes dans le ladder > 5K MMR.
-                {% elif current_user.section == 'medium' %}
-                Vous êtes dans le ladder compris entre 3K et 5K MMR.
+                Vous êtes dans le ladder > 4K5 MMR.
                 {% elif current_user.section == 'low' %}
-                Vous êtes dans le ladder < 3K MMR.
+                Vous êtes dans le ladder < 4K5 MMR.
                 {% endif %}
 
                 <br />
@@ -35,7 +33,6 @@
             <p>État des queues:</p>
             <ul>
                 <li>Haut MMR: {a queue_details.queues.high a} / 10.</li>
-                <li>MMR Moyen: {a queue_details.queues.medium a} / 10.</li>
                 <li>Bas MMR: {a queue_details.queues.low a} / 10.</li>
             </ul>
 

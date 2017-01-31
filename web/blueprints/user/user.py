@@ -300,27 +300,4 @@ def make_blueprint(job_queue):
 
         return redirect(url_for('user_blueprint.user', steam_id=user_id))
 
-    @user_blueprint.route('/user/section/<int:steam_id>/<string:ladder>')
-    @login_required
-    def user_section(steam_id, ladder):
-        """Change the ladder the user is playing into.
-
-        Args:
-            steam_id: user ID of the `User` to change the ladder.
-            ladder: `str` ladder_name to put the user into (cf. constants).
-        Returns:
-            Redirection to the user detail page.
-        """
-        target_user = db.session().query(User).filter_by(id=steam_id).first()
-        if target_user is not None and \
-                        ladder in [constants.LADDER_HIGH, constants.LADDER_MEDIUM, constants.LADDER_LOW] and \
-                current_user.has_permission(constants.PERMISSION_ADMIN):
-            target_user.section = ladder
-            scoreboard = Scoreboard.query.filter_by(user_id=target_user.id, ladder_name=ladder).first()
-            if scoreboard is None:
-                scoreboard = Scoreboard(target_user, ladder)
-                db.session.add(scoreboard)
-            db.session().commit()
-        return redirect(url_for('user_blueprint.user', steam_id=steam_id))
-
     return user_blueprint

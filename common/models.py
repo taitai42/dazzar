@@ -301,8 +301,7 @@ class PlayerInMatch(db.Model):
     Attributes:
         player_id: Foreign User id.
         match_id: Foreign Match id.
-        mmr_before: MMR of the User before the match.
-        mmr_after: MMR of the User after the match.
+        mmr: MMR of the User before the match.
         is_radiant: `Boolean` True iff the player is Radiant.
         team_slot: `int` position of the player in the team, from 1 to 5.
         is_leaver: `Boolean` True iff the player left the match in progress.
@@ -314,8 +313,7 @@ class PlayerInMatch(db.Model):
     player_id = db.Column(db.BigInteger(), db.ForeignKey('user.id'), primary_key=True)
     match_id = db.Column(db.Integer, db.ForeignKey('match.id'), primary_key=True)
 
-    mmr_before = db.Column(db.Integer, nullable=False)
-    mmr_after = db.Column(db.Integer, nullable=True)
+    mmr = db.Column(db.Integer, nullable=False)
     is_radiant = db.Column(db.Boolean, nullable=False)
     team_slot = db.Column(db.Integer, nullable=False)
     is_leaver = db.Column(db.Boolean, nullable=False)
@@ -324,19 +322,18 @@ class PlayerInMatch(db.Model):
     player = db.relationship('User', back_populates='matches')
     match = db.relationship('Match', back_populates='players')
 
-    def __init__(self, player, match, is_radiant, team_slot):
+    def __init__(self, user, match, is_radiant, team_slot):
         """Create a new player of the match.
 
         Args:
-            player: `User` this player is linked to.
+            user: `User` this player is linked to.
             match: `Match` this player is linked to.
             is_radiant: `Boolean` True iff the player is Radiant.
             team_slot: `int` the slot the player in the team, from 1 to 5.
         """
-        self.player_id = player.user_id
+        self.player_id = user.id
         self.match = match
-        self.mmr_before = player.mmr
-        self.mmr_after = None
+        self.mmr = user.solo_mmr
         self.is_radiant = is_radiant
         self.team_slot = team_slot
 
@@ -388,14 +385,12 @@ class Match(db.Model):
         is_radiant = True
         sums = {True: 0, False: 0}
         count = {True: 0, False: 0}
-        for player in Scoreboard.query.filter(Scoreboard.user_id.in_(players),
-                                              Scoreboard.ladder_name == self.section).order_by(
-                Scoreboard.mmr.desc()).all():
+        for user in User.query.filter(User.id.in_(players)).order_by(User.solo_mmr.desc()).all():
             if sums[is_radiant] > sums[not is_radiant] and count[not is_radiant] < 5:
                 is_radiant = not is_radiant
-            sums[is_radiant] += player.mmr
+            sums[is_radiant] += user.solo_mmr
             count[is_radiant] += 1
-            player_in_match = PlayerInMatch(player, self, is_radiant, count[is_radiant])
+            player_in_match = PlayerInMatch(user, self, is_radiant, count[is_radiant])
             self.players.append(player_in_match)
 
         # Computation of mode starting with votes
@@ -422,7 +417,7 @@ class Scoreboard(db.Model):
     Attributes:
         user_id: Unique `User` identifier.
         ladder_name: ladder name this scoreboard is about (cf. constants).
-        mmr: `int` MMR of the user in the ladder
+        points: `int` points of the user, computed from win/loss/dodge/leave
         matches: `int` number of matches played, win + loss + leave.
         win: `int` number of wins.
         loss: `int` number of losses.
@@ -435,7 +430,7 @@ class Scoreboard(db.Model):
     user_id = db.Column(db.BigInteger(), db.ForeignKey('user.id'), primary_key=True)
     ladder_name = db.Column(db.String, primary_key=True)
 
-    mmr = db.Column(db.Integer, nullable=False, index=True)
+    points = db.Column(db.Integer, nullable=False, index=True)
     matches = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     win = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     loss = db.Column(db.Integer, nullable=False, default=0, server_default='0')
@@ -454,9 +449,9 @@ class Scoreboard(db.Model):
         self.user = user
         self.ladder_name = ladder_name
 
-        self.mmr = 5000
+        self.points = 0
+        self.matches = 0
         self.win = 0
         self.loss = 0
         self.dodge = 0
         self.leave = 0
-        self.matches = 0
